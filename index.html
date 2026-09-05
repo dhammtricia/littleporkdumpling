@@ -320,67 +320,48 @@
   attendYes.addEventListener('click', () => setAttending('yes'));
   attendNo.addEventListener('click', () => setAttending('no'));
   guestsInput.addEventListener('input', renderGuestNameFields);
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
   const form = document.getElementById('rsvpForm');
+  const submitBtn = document.getElementById('submitBtn');
   const confirmMsg = document.getElementById('confirmMsg');
   const confirmText = document.getElementById('confirmText');
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
-
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  if (!attendingInput.value) {
-    alert("Please select whether you are attending.");
-    return;
-  }
-
-  const submitBtn = document.getElementById('submitBtn');
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Sending...";
-
-  const guestNames = Array.from(
-    guestNamesContainer.querySelectorAll('input')
-  )
-    .map(input => input.value.trim())
-    .filter(Boolean)
-    .join(", ");
-
-  const data = new URLSearchParams();
-
-  data.append("name", document.getElementById("name").value.trim());
-  data.append("email", document.getElementById("email").value.trim());
-  data.append("phone", document.getElementById("phone").value.trim());
-  data.append("attending", attendingInput.value);
-  data.append("guests", guestsInput.value);
-  data.append("guestNames", guestNames);
-  data.append("message", document.getElementById("message").value.trim());
-
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: data
-    });
-
-    form.style.display = 'none';
-
-    confirmText.textContent = attendingInput.value === 'yes'
-      ? "Thank you — we can't wait to see you there."
-      : "Thank you for letting us know — you'll be missed.";
-
-    confirmMsg.classList.add('show');
-
-  } catch (error) {
-    console.error("RSVP error:", error);
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Send RSVP";
-
-    alert("There was a problem sending your RSVP. Please try again.");
-  }
-});
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!attendingInput.value) {
+      alert("Let us know whether you'll be joining before sending.");
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    const payload = {
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      phone: document.getElementById('phone').value,
+      attending: attendingInput.value,
+      guests: attendingInput.value === 'yes' ? document.getElementById('guests').value : '0',
+      guestNames: attendingInput.value === 'yes'
+        ? Array.from(guestNamesContainer.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean).join(', ')
+        : '',
+      message: document.getElementById('message').value
+    };
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      });
+      form.style.display = 'none';
+      confirmText.textContent = attendingInput.value === 'yes'
+        ? "Thank you — we can't wait to see you there."
+        : "Thank you for letting us know — you'll be missed.";
+      confirmMsg.classList.add('show');
+    } catch (err) {
+      alert("That didn't go through — check your connection and try again.");
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send RSVP';
+    }
+  });
 </script>
 <script>
   (function() {
