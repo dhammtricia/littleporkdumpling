@@ -323,37 +323,37 @@
   const form = document.getElementById('rsvpForm');
   const confirmMsg = document.getElementById('confirmMsg');
   const confirmText = document.getElementById('confirmText');
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/XXXXXXXXXXXX/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   if (!attendingInput.value) {
-    alert("Please let us know if you will be attending.");
+    alert("Please select whether you are attending.");
     return;
   }
 
   const submitBtn = document.getElementById('submitBtn');
+
   submitBtn.disabled = true;
   submitBtn.textContent = "Sending...";
 
-  // Collect plus-one names
   const guestNames = Array.from(
     guestNamesContainer.querySelectorAll('input')
   )
     .map(input => input.value.trim())
-    .filter(name => name !== "")
+    .filter(Boolean)
     .join(", ");
 
   const data = new URLSearchParams();
 
-  data.append("name", document.getElementById("name").value);
-  data.append("email", document.getElementById("email").value);
-  data.append("phone", document.getElementById("phone").value);
+  data.append("name", document.getElementById("name").value.trim());
+  data.append("email", document.getElementById("email").value.trim());
+  data.append("phone", document.getElementById("phone").value.trim());
   data.append("attending", attendingInput.value);
   data.append("guests", guestsInput.value);
   data.append("guestNames", guestNames);
-  data.append("message", document.getElementById("message").value);
+  data.append("message", document.getElementById("message").value.trim());
 
   try {
     await fetch(GOOGLE_SCRIPT_URL, {
@@ -371,12 +371,12 @@ form.addEventListener('submit', async (e) => {
     confirmMsg.classList.add('show');
 
   } catch (error) {
-    console.error("RSVP submission error:", error);
+    console.error(error);
 
     submitBtn.disabled = false;
     submitBtn.textContent = "Send RSVP";
 
-    alert("Something went wrong. Please try again.");
+    alert("There was a problem sending your RSVP. Please try again.");
   }
 });
 </script>
