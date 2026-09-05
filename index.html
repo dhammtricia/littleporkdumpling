@@ -247,24 +247,6 @@
           <input type="email" id="email" name="email" autocomplete="email">
         </div>
         <div class="field">
-          <label for="phone">Phone number <span class="hint">optional</span></label>
-          <input type="tel" id="phone" name="phone" autocomplete="tel">
-        </div>
-        <div class="field">
-          <label for="carrier">Mobile carrier <span class="hint">optional — so we can text you the details</span></label>
-          <select id="carrier" name="carrier">
-            <option value="">Skip texting me</option>
-            <option value="vtext.com">Verizon</option>
-            <option value="txt.att.net">AT&amp;T</option>
-            <option value="tmomail.net">T-Mobile</option>
-            <option value="messaging.sprintpcs.com">Sprint</option>
-            <option value="msg.fi.google.com">Google Fi</option>
-            <option value="sms.myboostmobile.com">Boost Mobile</option>
-            <option value="sms.cricketwireless.net">Cricket</option>
-            <option value="email.uscc.net">US Cellular</option>
-          </select>
-        </div>
-        <div class="field">
           <label id="attendLabel">Will you be there?</label>
           <div class="attend-group" role="group" aria-labelledby="attendLabel">
             <button type="button" class="attend-btn" id="attendYes" aria-pressed="false">Joyfully attending</button>
@@ -350,14 +332,12 @@
     const payload = {
       name: document.getElementById('name').value,
       email: document.getElementById('email').value,
-      phone: document.getElementById('phone').value,
       attending: attendingInput.value,
       guests: attendingInput.value === 'yes' ? document.getElementById('guests').value : '0',
       guestNames: attendingInput.value === 'yes'
         ? Array.from(guestNamesContainer.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean).join(', ')
         : '',
-      message: document.getElementById('message').value,
-      carrier: document.getElementById('carrier').value
+      message: document.getElementById('message').value
     };
     try {
       await fetch(SCRIPT_URL, {
