@@ -106,7 +106,7 @@
   .field { margin-bottom: 22px; }
   .field label { display: block; font-size: 14px; font-weight: 500; color: var(--sage-deep); margin-bottom: 7px; }
   .field .hint { font-weight: 400; color: #7A7565; font-size: 13px; }
-  input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea {
+  input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea, select {
     width: 100%;
     font-family: 'Work Sans', sans-serif;
     font-size: 16px;
@@ -243,12 +243,26 @@
           <input type="text" id="name" name="name" required autocomplete="name">
         </div>
         <div class="field">
-          <label for="email">Email <span class="hint">for RSVP confirmation and reminders, optional</span></label>
+          <label for="email">Email <span class="hint">for your RSVP confirmation and updates, optional</span></label>
           <input type="email" id="email" name="email" autocomplete="email">
         </div>
         <div class="field">
           <label for="phone">Phone number <span class="hint">optional</span></label>
           <input type="tel" id="phone" name="phone" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label for="carrier">Mobile carrier <span class="hint">optional — so we can text you the details</span></label>
+          <select id="carrier" name="carrier">
+            <option value="">Skip texting me</option>
+            <option value="vtext.com">Verizon</option>
+            <option value="txt.att.net">AT&amp;T</option>
+            <option value="tmomail.net">T-Mobile</option>
+            <option value="messaging.sprintpcs.com">Sprint</option>
+            <option value="msg.fi.google.com">Google Fi</option>
+            <option value="sms.myboostmobile.com">Boost Mobile</option>
+            <option value="sms.cricketwireless.net">Cricket</option>
+            <option value="email.uscc.net">US Cellular</option>
+          </select>
         </div>
         <div class="field">
           <label id="attendLabel">Will you be there?</label>
@@ -342,7 +356,8 @@
       guestNames: attendingInput.value === 'yes'
         ? Array.from(guestNamesContainer.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean).join(', ')
         : '',
-      message: document.getElementById('message').value
+      message: document.getElementById('message').value,
+      carrier: document.getElementById('carrier').value
     };
     try {
       await fetch(SCRIPT_URL, {
