@@ -63,8 +63,8 @@
   .hero-bow { width: 256px; height: auto; position: absolute; top: -50px; left: -100px; transform: rotate(-25deg); z-index: 2; }
   .hero-bow-right { width: 256px; height: auto; position: absolute; top: -50px; right: -100px; transform: rotate(25deg) scaleX(-1); z-index: 2; }
   @media (max-width: 480px) {
-    .hero-bow { width: 200px; top: -35px; left: -50px; }
-    .hero-bow-right { width: 200px; top: -35px; right: -50px; }
+    .hero-bow { width: 200px; top: -35px; left: -75px; }
+    .hero-bow-right { width: 200px; top: -35px; right: -75px; }
   }
   .eyebrow-tag {
     display: inline-block;
@@ -363,7 +363,7 @@
         <p id="confirmText">Thank you — we can't wait to see you there.</p>
         <div class="calendar-buttons" id="calendarButtons">
           <a class="calendar-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Baby%20Shower%20for%20Tricia%20%26%20Connor&dates=20261121T160000/20261121T200000&details=A%20little%20dumpling%20is%20on%20the%20way%21%20Join%20us%20to%20celebrate%20Tricia%2C%20Connor%2C%20and%20the%20newest%20addition%20to%20their%20table.%20It%20is%20buffet%20style%2C%20so%20bring%20your%20appetite.&location=World%20Gourmet%20Restaurant%2C%206010%20Stevenson%20Blvd%2C%20Fremont%2C%20CA%2094538&ctz=America/Los_Angeles" target="_blank" rel="noopener">Add to Google Calendar</a>
-          <a class="calendar-btn" href="baby-shower-invite.ics">Add to Apple/Outlook Calendar</a>
+          <a class="calendar-btn" href="baby-shower-invite.ics">Add to Apple Calendar</a>
         </div>
       </div>
     </div>
