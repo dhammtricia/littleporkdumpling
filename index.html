@@ -253,6 +253,18 @@
   #guestNamesField.show { display: block; }
   #guestNamesContainer input { margin-bottom: 10px; }
   #guestNamesContainer input:last-child { margin-bottom: 0; }
+  .returning-banner {
+    display: none;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #EEF4E9;
+    border: 1px solid var(--sage-soft);
+    border-radius: 3px;
+    color: var(--sage-deep);
+    font-size: 13px;
+    font-family: 'Work Sans', sans-serif;
+  }
+  .returning-banner.show { display: block; }
   .submit-btn {
     position: relative;
     width: 100%;
@@ -504,6 +516,7 @@
         <div class="field">
           <label for="email">Email <span class="hint">for your RSVP confirmation and updates, optional</span></label>
           <input type="email" id="email" name="email" autocomplete="email">
+          <div id="returningBanner" class="returning-banner">Welcome back! We've filled in your last RSVP — update anything below and resubmit.</div>
         </div>
         <div class="field">
           <label id="attendLabel">Will you be there?</label>
@@ -613,6 +626,58 @@
   guestsMinus.addEventListener('click', () => stepGuests(-1));
   guestsPlus.addEventListener('click', () => stepGuests(1));
 
+  // Look up an existing RSVP by email so returning guests can edit instead of duplicating.
+  const emailInput = document.getElementById('email');
+  const returningBanner = document.getElementById('returningBanner');
+  const nameInput = document.getElementById('name');
+  const messageInput = document.getElementById('message');
+  let isEditingExisting = false;
+  let lastLookedUpEmail = '';
+
+  function applyLookupResult(record) {
+    if (record) {
+      isEditingExisting = true;
+      nameInput.value = record.name || nameInput.value;
+      setAttending(record.attending === 'no' ? 'no' : 'yes');
+      if (record.attending === 'yes') {
+        const total = parseInt(record.guests, 10) || 1;
+        guestsInput.value = Math.min(parseInt(guestsInput.max, 10), Math.max(parseInt(guestsInput.min, 10), total));
+        renderGuestNameFields();
+        if (record.guestNames) {
+          const names = record.guestNames.split(',').map(n => n.trim()).filter(Boolean);
+          const inputs = guestNamesContainer.querySelectorAll('input');
+          inputs.forEach((input, i) => { if (names[i]) input.value = names[i]; });
+        }
+      }
+      messageInput.value = record.message || messageInput.value;
+      returningBanner.classList.add('show');
+    } else {
+      isEditingExisting = false;
+      returningBanner.classList.remove('show');
+    }
+    updateSubmitLabel();
+  }
+
+  function updateSubmitLabel() {
+    const label = document.getElementById('submitBtnLabel');
+    const text = isEditingExisting ? 'Update RSVP' : 'Send RSVP';
+    if (label) { label.textContent = text; } else { submitBtn.textContent = text; }
+  }
+
+  async function lookupEmail() {
+    const value = emailInput.value.trim();
+    if (!value || value === lastLookedUpEmail) return;
+    lastLookedUpEmail = value;
+    try {
+      const res = await fetch(SCRIPT_URL + '?email=' + encodeURIComponent(value), { method: 'GET' });
+      const data = await res.json();
+      applyLookupResult(data && data.found ? data.record : null);
+    } catch (err) {
+      // Silently ignore lookup failures — guest can still submit a fresh RSVP.
+    }
+  }
+  emailInput.addEventListener('blur', lookupEmail);
+
   // Random fade in/out "meow" near each footer cat, at random angled positions
   (function () {
     const catWraps = document.querySelectorAll('.footer-cats .cat-wrap');
@@ -695,7 +760,8 @@
     }
     submitBtn.disabled = true;
     const submitBtnLabel = document.getElementById('submitBtnLabel');
-    if (submitBtnLabel) { submitBtnLabel.textContent = 'Sending...'; } else { submitBtn.textContent = 'Sending...'; }
+    const sendingText = isEditingExisting ? 'Updating...' : 'Sending...';
+    if (submitBtnLabel) { submitBtnLabel.textContent = sendingText; } else { submitBtn.textContent = sendingText; }
     const payload = {
       name: document.getElementById('name').value,
       email: document.getElementById('email').value,
@@ -731,8 +797,7 @@
     } catch (err) {
       alert("That didn't go through — check your connection and try again.");
       submitBtn.disabled = false;
-      const submitBtnLabel = document.getElementById('submitBtnLabel');
-      if (submitBtnLabel) { submitBtnLabel.textContent = 'Send RSVP'; } else { submitBtn.textContent = 'Send RSVP'; }
+      updateSubmitLabel();
     }
   });
 </script>
