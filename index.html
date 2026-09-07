@@ -909,11 +909,10 @@
   // without needing a live Google Sheet match.
   // PREVIEW ONLY: simulates your Google Sheet with ONE fake "existing" RSVP,
   // so you can test both the new-guest and returning-guest flows realistically.
-  // Only this exact email counts as a match — anything else behaves like a new guest.
-  const FAKE_EXISTING_EMAIL = 'test@test.com';
+  // Any email containing "test" (case-insensitive) counts as a match — everything else is a new guest.
   lookupEmail = async function () {
     const typedEmail = emailInput.value.trim().toLowerCase();
-    if (typedEmail === FAKE_EXISTING_EMAIL) {
+    if (typedEmail.includes('test')) {
       applyLookupResult({
         name: nameInput.value.trim() || 'Tricia',
         attending: 'yes',
