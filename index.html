@@ -194,6 +194,11 @@
     color: var(--white);
     transform: scale(1.03);
   }
+  #attendNo[aria-pressed="true"] {
+    background: #E29A6B;
+    border-color: #D98A54;
+    color: var(--white);
+  }
   .attend-btn .check-mark {
     display: inline-block;
     opacity: 0;
@@ -520,7 +525,7 @@
           <label id="attendLabel">Will you be there?</label>
           <div class="attend-group" role="group" aria-labelledby="attendLabel">
             <button type="button" class="attend-btn" id="attendYes" aria-pressed="false">Joyfully attending<span class="check-mark">✓</span></button>
-            <button type="button" class="attend-btn" id="attendNo" aria-pressed="false">Can't make it<span class="check-mark">X</span></button>
+            <button type="button" class="attend-btn" id="attendNo" aria-pressed="false">Can't make it<span class="check-mark">✕</span></button>
           </div>
           <input type="hidden" id="attending" name="attending" required>
         </div>
@@ -725,9 +730,18 @@
         body: JSON.stringify(payload)
       });
       form.style.display = 'none';
-      confirmText.textContent = attendingInput.value === 'yes'
-        ? "Thank you — we can't wait to see you there."
-        : "Thank you for letting us know — you'll be missed.";
+      if (attendingInput.value === 'yes') {
+        const totalGuests = parseInt(payload.guests, 10) || 1;
+        const rsvpCountText = totalGuests === 1 ? '1 person' : `${totalGuests} people`;
+        let msg = `Thank you — we can't wait to see you there. We have you down for ${rsvpCountText}`;
+        if (payload.guestNames) {
+          msg += ` (${document.getElementById('name').value.trim()} + ${payload.guestNames})`;
+        }
+        msg += '.';
+        confirmText.textContent = msg;
+      } else {
+        confirmText.textContent = "Thank you for letting us know — you'll be missed.";
+      }
       document.getElementById('calendarButtons').classList.toggle('show', attendingInput.value === 'yes');
       confirmMsg.classList.add('show');
     } catch (err) {
