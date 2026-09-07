@@ -404,19 +404,6 @@
     100% { transform: translateY(0) scale(1); }
   }
   .happy-bounce { animation: happyBounce .55s ease; }
-  .happy-eye-left, .happy-eye-right, .happy-mouth {
-    position: absolute;
-    font-weight: 800;
-    line-height: 1;
-    color: #2E2015;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .15s ease;
-  }
-  .happy-eye-left.show, .happy-eye-right.show, .happy-mouth.show { opacity: 1; }
-  .happy-eye-left { left: 31%; top: 51%; font-size: 20px; transform: translate(-50%, -50%); }
-  .happy-eye-right { left: 69%; top: 51%; font-size: 20px; transform: translate(-50%, -50%); }
-  .happy-mouth { left: 50%; top: 60%; font-size: 20px; transform: translate(-50%, -50%); }
   @media (prefers-reduced-motion: reduce) {
     .shake { animation: none; }
     .happy-bounce { animation: none; }
@@ -442,9 +429,6 @@
     <div class="face-feature eye-left">&gt;</div>
     <div class="face-feature eye-right">&lt;</div>
     <div class="face-feature mouth-x">X</div>
-    <div class="happy-eye-left">^</div>
-    <div class="happy-eye-right">^</div>
-    <div class="happy-mouth">‿</div>
   </div>
   <div class="lock-title">A little dumpling is on the way</div>
   <p>This invite is password protected. Enter the password you were given to view it.</p>
@@ -663,7 +647,7 @@
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion || !overlay) return;
     const starColors = ['#F5B8D0', '#B3DDA8', '#AAD1F0'];
-    const NUM_CONCURRENT_STARS = 30;
+    const NUM_CONCURRENT_STARS = 55;
 
     function scheduleStar(initialDelay) {
       setTimeout(function spawn() {
@@ -683,7 +667,7 @@
         overlay.appendChild(star);
         star.addEventListener('animationend', () => {
           star.remove();
-          scheduleStar(150 + Math.random() * 700); // ~0.15s - 0.85s until this slot's next star
+          scheduleStar(100 + Math.random() * 500); // ~0.1s - 0.6s until this slot's next star
         });
       }, initialDelay);
     }
@@ -773,10 +757,6 @@
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduceMotion || !lockDumpling) { unlock(); return; }
       lockDumpling.classList.add('happy-bounce');
-      const happyEye = document.querySelector('.happy-eye-left');
-      const happyEyeR = document.querySelector('.happy-eye-right');
-      const happyMouth = document.querySelector('.happy-mouth');
-      [happyEye, happyEyeR, happyMouth].forEach(el => el && el.classList.add('show'));
       setTimeout(unlock, 550);
     }
     function tryUnlock() {
