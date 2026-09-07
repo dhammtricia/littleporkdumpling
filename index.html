@@ -142,9 +142,15 @@
     font-size: 14px;
     font-weight: 500;
     text-decoration: none;
-    transition: background .15s, color .15s;
+    transition: background .18s, color .18s, transform .18s ease, box-shadow .18s ease;
   }
-  .calendar-btn:hover { background: var(--sage-deep); color: var(--white); }
+  .calendar-btn:hover {
+    background: var(--sage-deep);
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(91, 58, 41, 0.18);
+  }
+  .calendar-btn:active { transform: translateY(0); }
   .pleat-divider { display: flex; justify-content: center; margin: 56px 0 8px; }
   .pleat-divider svg { width: 60px; height: auto; opacity: .8; }
   form { margin-top: 26px; }
@@ -168,6 +174,7 @@
   textarea { resize: vertical; min-height: 84px; }
   .attend-group { display: flex; gap: 12px; }
   .attend-btn {
+    position: relative;
     flex: 1;
     padding: 13px;
     border: 1px solid var(--sage-soft);
@@ -178,9 +185,29 @@
     color: var(--sage-deep);
     cursor: pointer;
     border-radius: 3px;
-    transition: background .15s, color .15s;
+    transform: scale(1);
+    transition: background .2s, color .2s, border-color .2s, transform .2s ease;
   }
-  .attend-btn[aria-pressed="true"] { background: var(--sage-deep); border-color: var(--sage-deep); color: var(--white); }
+  .attend-btn[aria-pressed="true"] {
+    background: var(--sage-deep);
+    border-color: var(--sage-deep);
+    color: var(--white);
+    transform: scale(1.03);
+  }
+  .attend-btn .check-mark {
+    display: inline-block;
+    opacity: 0;
+    transform: scale(0.4) translateY(2px);
+    margin-left: 6px;
+    transition: opacity .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .attend-btn[aria-pressed="true"] .check-mark {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .attend-btn, .attend-btn .check-mark { transition: none; }
+  }
   #guestsField { display: none; }
   #guestsField.show { display: block; }
   .stepper { display: flex; align-items: stretch; gap: 8px; }
@@ -196,13 +223,21 @@
     border-radius: 3px;
     cursor: pointer;
     line-height: 1;
-    transition: background .15s, color .15s;
+    transition: background .18s, color .18s;
   }
   .stepper-btn:hover { background: var(--sage-deep); color: var(--white); }
-  .stepper-btn:active { transform: scale(0.96); }
+  .stepper-btn:active { transform: scale(0.9); transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
   .stepper input[type="number"] {
     text-align: center;
     -moz-appearance: textfield;
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .stepper input[type="number"].bump {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.9);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stepper-btn, .stepper input[type="number"] { transition: none; }
   }
   .stepper input[type="number"]::-webkit-outer-spin-button,
   .stepper input[type="number"]::-webkit-inner-spin-button {
@@ -214,6 +249,7 @@
   #guestNamesContainer input { margin-bottom: 10px; }
   #guestNamesContainer input:last-child { margin-bottom: 0; }
   .submit-btn {
+    position: relative;
     width: 100%;
     padding: 15px;
     background: var(--terracotta);
@@ -224,10 +260,48 @@
     font-size: 17px;
     font-weight: 500;
     cursor: pointer;
-    transition: background .15s;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 rgba(193, 99, 61, 0);
+    transition: background .18s, transform .18s ease, box-shadow .18s ease;
+    overflow: visible;
   }
-  .submit-btn:hover { background: #A9522F; }
-  .submit-btn:disabled { opacity: .6; cursor: default; }
+  .submit-btn:hover {
+    background: #A9522F;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(193, 99, 61, 0.28);
+  }
+  .submit-btn:active {
+    transform: translateY(0) scale(0.97);
+    transition: transform .12s ease-out;
+  }
+  .submit-btn:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
+  .submit-steam {
+    position: absolute;
+    top: -2px; left: 50%;
+    width: 90px; height: 34px;
+    transform: translate(-50%, 0);
+    pointer-events: none;
+    opacity: 0;
+  }
+  .submit-steam.burst { animation: submitSteamBurst .9s ease-out forwards; }
+  .submit-steam path {
+    stroke: var(--white);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0;
+  }
+  .submit-steam.burst path { animation: rise 0.9s ease-in-out forwards; }
+  .submit-steam.burst path:nth-child(2) { animation-delay: .1s; }
+  .submit-steam.burst path:nth-child(3) { animation-delay: .2s; }
+  @keyframes submitSteamBurst {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .submit-btn { transition: none; }
+    .submit-steam.burst, .submit-steam.burst path { animation: none; }
+  }
   .form-note { font-size: 13px; color: #7A7565; margin-top: 14px; text-align: center; }
   .confirm { display: none; text-align: center; padding: 20px 10px 6px; }
   .confirm.show { display: block; }
@@ -317,8 +391,30 @@
     90% { transform: translateX(2px); }
   }
   .shake { animation: shake .5s ease; }
+  @keyframes happyBounce {
+    0%   { transform: translateY(0) scale(1); }
+    30%  { transform: translateY(-14px) scale(1.06, 0.94); }
+    50%  { transform: translateY(0) scale(0.96, 1.05); }
+    70%  { transform: translateY(-6px) scale(1.02, 0.98); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .happy-bounce { animation: happyBounce .55s ease; }
+  .happy-eye-left, .happy-eye-right, .happy-mouth {
+    position: absolute;
+    font-weight: 800;
+    line-height: 1;
+    color: #2E2015;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease;
+  }
+  .happy-eye-left.show, .happy-eye-right.show, .happy-mouth.show { opacity: 1; }
+  .happy-eye-left { left: 31%; top: 51%; font-size: 20px; transform: translate(-50%, -50%); }
+  .happy-eye-right { left: 69%; top: 51%; font-size: 20px; transform: translate(-50%, -50%); }
+  .happy-mouth { left: 50%; top: 60%; font-size: 20px; transform: translate(-50%, -50%); }
   @media (prefers-reduced-motion: reduce) {
     .shake { animation: none; }
+    .happy-bounce { animation: none; }
   }
   #lockScreen .lock-title { font-family: 'Fraunces', serif; font-size: 24px; color: var(--sage-deep); margin-bottom: 8px; }
   #lockScreen p { max-width: 320px; margin-bottom: 20px; color: var(--ink); }
@@ -341,6 +437,9 @@
     <div class="face-feature eye-left">&gt;</div>
     <div class="face-feature eye-right">&lt;</div>
     <div class="face-feature mouth-x">X</div>
+    <div class="happy-eye-left">^</div>
+    <div class="happy-eye-right">^</div>
+    <div class="happy-mouth">‿</div>
   </div>
   <div class="lock-title">A little dumpling is on the way</div>
   <p>This invite is password protected. Enter the password you were given to view it.</p>
@@ -420,8 +519,8 @@
         <div class="field">
           <label id="attendLabel">Will you be there?</label>
           <div class="attend-group" role="group" aria-labelledby="attendLabel">
-            <button type="button" class="attend-btn" id="attendYes" aria-pressed="false">Joyfully attending</button>
-            <button type="button" class="attend-btn" id="attendNo" aria-pressed="false">Can't make it</button>
+            <button type="button" class="attend-btn" id="attendYes" aria-pressed="false">Joyfully attending<span class="check-mark">✓</span></button>
+            <button type="button" class="attend-btn" id="attendNo" aria-pressed="false">Can't make it<span class="check-mark">✓</span></button>
           </div>
           <input type="hidden" id="attending" name="attending" required>
         </div>
@@ -441,7 +540,14 @@
           <label for="message">A note for the parents-to-be <span class="hint">optional</span></label>
           <textarea id="message" name="message" placeholder="Well wishes, advice, or excitement..."></textarea>
         </div>
-        <button type="submit" class="submit-btn" id="submitBtn">Send RSVP</button>
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <svg class="submit-steam" id="submitSteam" viewBox="0 0 90 34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M28 30 C 24 22, 34 16, 30 8" />
+            <path d="M45 30 C 41 20, 51 14, 47 6" />
+            <path d="M62 30 C 58 22, 68 16, 64 8" />
+          </svg>
+          <span id="submitBtnLabel">Send RSVP</span>
+        </button>
         <p class="form-note">Kindly reply by November 1st.</p>
       </form>
       <div class="confirm" id="confirmMsg">
@@ -502,8 +608,18 @@
     const max = parseInt(guestsInput.max, 10);
     const current = parseInt(guestsInput.value, 10) || min;
     const next = Math.min(max, Math.max(min, current + delta));
-    guestsInput.value = next;
-    renderGuestNameFields();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      guestsInput.value = next;
+      renderGuestNameFields();
+      return;
+    }
+    guestsInput.classList.add('bump');
+    setTimeout(() => {
+      guestsInput.value = next;
+      renderGuestNameFields();
+      guestsInput.classList.remove('bump');
+    }, 130);
   }
   guestsMinus.addEventListener('click', () => stepGuests(-1));
   guestsPlus.addEventListener('click', () => stepGuests(1));
@@ -582,8 +698,15 @@
       alert("Let us know whether you'll be joining before sending.");
       return;
     }
+    const submitSteam = document.getElementById('submitSteam');
+    if (submitSteam) {
+      submitSteam.classList.remove('burst');
+      void submitSteam.offsetWidth;
+      submitSteam.classList.add('burst');
+    }
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
+    const submitBtnLabel = document.getElementById('submitBtnLabel');
+    if (submitBtnLabel) { submitBtnLabel.textContent = 'Sending...'; } else { submitBtn.textContent = 'Sending...'; }
     const payload = {
       name: document.getElementById('name').value,
       email: document.getElementById('email').value,
@@ -610,7 +733,8 @@
     } catch (err) {
       alert("That didn't go through — check your connection and try again.");
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Send RSVP';
+      const submitBtnLabel = document.getElementById('submitBtnLabel');
+      if (submitBtnLabel) { submitBtnLabel.textContent = 'Send RSVP'; } else { submitBtn.textContent = 'Send RSVP'; }
     }
   });
 </script>
@@ -631,10 +755,20 @@
       lockScreen.style.display = 'none';
       document.body.style.overflow = '';
     }
+    function happyUnlock() {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion || !lockDumpling) { unlock(); return; }
+      lockDumpling.classList.add('happy-bounce');
+      const happyEye = document.querySelector('.happy-eye-left');
+      const happyEyeR = document.querySelector('.happy-eye-right');
+      const happyMouth = document.querySelector('.happy-mouth');
+      [happyEye, happyEyeR, happyMouth].forEach(el => el && el.classList.add('show'));
+      setTimeout(unlock, 550);
+    }
     function tryUnlock() {
       if (lockPassword.value.trim().toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
         sessionStorage.setItem(STORAGE_KEY, "true");
-        unlock();
+        happyUnlock();
       } else {
         lockError.style.display = 'block';
         lockPassword.value = '';
