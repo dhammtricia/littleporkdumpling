@@ -429,7 +429,6 @@
     background: #fff; border-radius: 3px; width: 240px; max-width: 80vw; margin-bottom: 12px;
     font-family: 'Work Sans', sans-serif; display: block;
   }
-  #lockEmail::placeholder { font-size: 13px; }
   #lockPassword {
     padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
     background: #fff; border-radius: 3px; width: 240px; max-width: 80vw; margin-bottom: 12px;
@@ -453,7 +452,7 @@
   <div class="lock-title">A little dumpling is on the way</div>
   <p>This invite is password protected. Enter the password you were given to view it.</p>
   <input type="text" id="lockName" placeholder="Your name" autocomplete="name">
-  <input type="email" id="lockEmail" placeholder="Your email — to find your past RSVP" autocomplete="email">
+  <input type="email" id="lockEmail" placeholder="Your email" autocomplete="email">
   <input type="password" id="lockPassword" placeholder="Password">
   <button id="lockSubmit">Enter</button>
   <p id="lockError">Me-OW that password isn't right, try again.</p>
@@ -681,7 +680,7 @@
     }
     if (isEditingExisting) {
       heroTitle.textContent = `Welcome back, ${name}!`;
-      if (heroSub) heroSub.textContent = "Here are the details of your RSVP — feel free to make changes below.";
+      if (heroSub) heroSub.textContent = "Here are the details of your RSVP for the baby shower — feel free to make changes below.";
     } else {
       heroTitle.textContent = `Hello, ${name}! Please join us for a baby shower.`;
       if (heroSub) heroSub.innerHTML = 'Celebrating <span class="names">Tricia, Connor,</span> and the newest addition to their table.';
@@ -903,6 +902,42 @@
     });
     lockPassword.focus();
   })();
+</script></body>
+<script>
+  // PREVIEW ONLY: makes every email lookup return a fake "found" record so you can
+  // go through the real lock screen (password: hamm) and see the "Welcome back" state
+  // without needing a live Google Sheet match.
+  lookupEmail = async function () {
+    const name = nameInput.value.trim() || 'Tricia';
+    applyLookupResult({
+      name: name,
+      attending: 'yes',
+      guests: '3',
+      guestNames: 'Alex, Sam',
+      message: "So excited for you two!"
+    });
+  };
+  // Force the "Welcome back" state after ANY correct password entry, whether or not
+  // an email was typed, and whether Enter or the button was used.
+  function forcePreviewReturningState() {
+    const pwd = document.getElementById('lockPassword').value.trim().toLowerCase();
+    if (pwd === 'hamm') {
+      setTimeout(() => {
+        const name = nameInput.value.trim() || 'Tricia';
+        applyLookupResult({
+          name: name,
+          attending: 'yes',
+          guests: '3',
+          guestNames: 'Alex, Sam',
+          message: "So excited for you two!"
+        });
+      }, 950);
+    }
+  }
+  document.getElementById('lockSubmit').addEventListener('click', forcePreviewReturningState);
+  document.getElementById('lockPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') forcePreviewReturningState();
+  });
 </script>
-</body>
+
 </html>
