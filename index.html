@@ -920,18 +920,19 @@
     window.addEventListener('resize', sizeCanvas);
 
     function burst(x, y) {
-      const count = 60 + Math.floor(Math.random() * 30);
+      const count = 110 + Math.floor(Math.random() * 50);
       const color = BLUES[Math.floor(Math.random() * BLUES.length)];
+      const power = 0.85 + Math.random() * 0.4;
       for (let i = 0; i < count; i++) {
         const angle = (Math.PI * 2 * i) / count + Math.random() * 0.2;
-        const speed = 1.5 + Math.random() * 4;
+        const speed = (3 + Math.random() * 8) * power;
         particles.push({
           x: x, y: y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           life: 1,
-          decay: 0.008 + Math.random() * 0.012,
-          size: 1.5 + Math.random() * 2,
+          decay: 0.005 + Math.random() * 0.007,
+          size: 2.5 + Math.random() * 3.5,
           color: Math.random() < 0.15 ? '#FFFEFA' : color
         });
       }
@@ -943,17 +944,20 @@
         const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.045;      // gravity
-        p.vx *= 0.985;      // drag
-        p.vy *= 0.985;
+        p.vy += 0.035;      // gravity
+        p.vx *= 0.99;       // drag
+        p.vy *= 0.99;
         p.life -= p.decay;
         if (p.life <= 0) { particles.splice(i, 1); continue; }
         ctx.globalAlpha = Math.max(p.life, 0);
         ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
       if (particles.length > 0) {
         rafId = requestAnimationFrame(tick);
@@ -971,11 +975,12 @@
       sizeCanvas();
       canvas.classList.add('show');
       const w = window.innerWidth, h = window.innerHeight;
-      // a first volley, then staggered bursts for a few seconds
+      // a big opening volley, then staggered bursts for a few seconds
       burst(w * 0.5, h * 0.35);
-      const times = [350, 700, 1000, 1400, 1750, 2100, 2500, 2900, 3300];
+      setTimeout(() => { burst(w * 0.25, h * 0.28); burst(w * 0.75, h * 0.30); }, 250);
+      const times = [600, 950, 1300, 1650, 2000, 2400, 2800, 3200, 3600];
       times.forEach(t => setTimeout(() => {
-        burst(w * (0.15 + Math.random() * 0.7), h * (0.2 + Math.random() * 0.4));
+        burst(w * (0.1 + Math.random() * 0.8), h * (0.15 + Math.random() * 0.45));
       }, t));
       rafId = requestAnimationFrame(tick);
     };
