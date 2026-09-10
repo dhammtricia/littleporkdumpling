@@ -347,6 +347,16 @@
     background: var(--cream-deep);
   }
   .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  #fireworks-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 500;
+    display: none;
+  }
+  #fireworks-canvas.show { display: block; }
   .video-caption { text-align: center; font-size: 15px; color: #7A7565; margin: 0 0 18px; }
   .form-note { font-size: 13px; color: #7A7565; margin-top: 14px; text-align: center; }
   .confirm { display: none; text-align: center; padding: 20px 10px 6px; }
@@ -487,6 +497,7 @@
   <p id="lockError">Me-OW that password isn't right, try again.</p>
 </div>
 <div id="pageScroll">
+<canvas id="fireworks-canvas" aria-hidden="true"></canvas>
 <div id="stars-overlay" aria-hidden="true"></div>
 <div class="wrap">
   <section class="hero">
@@ -549,7 +560,8 @@
       <p class="video-caption">Press play to find out — boy or girl?</p>
       <div class="video-wrap">
         <iframe
-          src="https://www.youtube-nocookie.com/embed/LTQJStuFuT8?rel=0"
+          id="revealVideo"
+          src="https://www.youtube-nocookie.com/embed/LTQJStuFuT8?rel=0&enablejsapi=1"
           title="Gender reveal"
           allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen loading="lazy"></iframe>
@@ -887,6 +899,143 @@
     updateSubmitLabel();
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+</script>
+<script>
+  /* ---- Blue fireworks, triggered when the reveal video finishes ---- */
+  (function() {
+    const canvas = document.getElementById('fireworks-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const BLUES = ['#5C7C93', '#7FB3D5', '#B9D3E0', '#3E6B8A', '#EAF1F5'];
+    let particles = [];
+    let running = false;
+    let rafId = null;
+
+    function sizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', sizeCanvas);
+
+    function burst(x, y) {
+      const count = 60 + Math.floor(Math.random() * 30);
+      const color = BLUES[Math.floor(Math.random() * BLUES.length)];
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.2;
+        const speed = 1.5 + Math.random() * 4;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          decay: 0.008 + Math.random() * 0.012,
+          size: 1.5 + Math.random() * 2,
+          color: Math.random() < 0.15 ? '#FFFEFA' : color
+        });
+      }
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.045;      // gravity
+        p.vx *= 0.985;      // drag
+        p.vy *= 0.985;
+        p.life -= p.decay;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        ctx.globalAlpha = Math.max(p.life, 0);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (particles.length > 0) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        running = false;
+        canvas.classList.remove('show');
+        cancelAnimationFrame(rafId);
+      }
+    }
+
+    window.launchFireworks = function() {
+      if (running) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      running = true;
+      sizeCanvas();
+      canvas.classList.add('show');
+      const w = window.innerWidth, h = window.innerHeight;
+      // a first volley, then staggered bursts for a few seconds
+      burst(w * 0.5, h * 0.35);
+      const times = [350, 700, 1000, 1400, 1750, 2100, 2500, 2900, 3300];
+      times.forEach(t => setTimeout(() => {
+        burst(w * (0.15 + Math.random() * 0.7), h * (0.2 + Math.random() * 0.4));
+      }, t));
+      rafId = requestAnimationFrame(tick);
+    };
+  })();
+
+  /* ---- Hook into the YouTube player so fireworks fire when the video ends ---- */
+  (function() {
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  })();
+
+  function onYouTubeIframeAPIReady() {
+    const el = document.getElementById('revealVideo');
+    if (!el || typeof YT === 'undefined') return;
+
+    let pollId = null;
+    let fired = false;
+    const END_WINDOW = 0.75;   // seconds from the end that counts as "the end"
+
+    function fire() {
+      if (fired) return;
+      fired = true;
+      if (typeof window.launchFireworks === 'function') window.launchFireworks();
+    }
+
+    function checkPosition(player) {
+      let d, t;
+      try {
+        d = player.getDuration();
+        t = player.getCurrentTime();
+      } catch (err) { return; }
+      if (!d || d <= 0) return;
+      if (d - t <= END_WINDOW) {
+        fire();
+      } else if (d - t > 2) {
+        fired = false;   // they rewound or replayed — arm it again
+      }
+    }
+
+    const player = new YT.Player('revealVideo', {
+      events: {
+        onStateChange: function(e) {
+          const S = YT.PlayerState;
+          if (e.data === S.ENDED) {
+            fire();
+            clearInterval(pollId);
+          } else if (e.data === S.PLAYING || e.data === S.BUFFERING) {
+            // covers scrubbing to the end while playing
+            clearInterval(pollId);
+            pollId = setInterval(function() { checkPosition(player); }, 200);
+          } else if (e.data === S.PAUSED) {
+            // covers dragging the scrubber to the end and stopping there
+            clearInterval(pollId);
+            checkPosition(player);
+          }
+        }
+      }
+    });
+  }
 </script>
 <script>
   (function() {
