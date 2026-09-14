@@ -270,6 +270,15 @@
   #guestNamesField.show { display: block; }
   #guestNamesContainer input { margin-bottom: 10px; }
   #guestNamesContainer input:last-child { margin-bottom: 0; }
+  #guestNamesContainer input.missing { border-color: var(--terracotta); background: #FBF0E9; }
+  .field-error {
+    display: none;
+    margin: 10px 0 0;
+    color: var(--terracotta);
+    font-size: 13px;
+    font-family: 'Work Sans', sans-serif;
+  }
+  .field-error.show { display: block; }
   .returning-banner {
     display: none;
     margin-top: 8px;
@@ -582,7 +591,7 @@
           <input type="text" id="name" name="name" required autocomplete="name">
         </div>
         <div class="field">
-          <label for="email">Email <span class="hint">for your RSVP confirmation and updates, optional</span></label>
+          <label for="email">Email <span class="hint">for your RSVP confirmation and updates</span></label>
           <input type="email" id="email" name="email" autocomplete="email">
           <div id="returningBanner" class="returning-banner">Welcome back! We've filled in your last RSVP — update anything below and resubmit.</div>
         </div>
@@ -603,11 +612,12 @@
           </div>
         </div>
         <div class="field" id="guestNamesField">
-          <label>Names of your plus-ones <span class="hint">optional</span></label>
+          <label>Names of your plus-ones<span class="hint" id="guestNamesHint"></span></label>
           <div id="guestNamesContainer"></div>
+          <p class="field-error" id="guestNamesError" role="alert">Add a name for each plus-one so we know who to expect at the table.</p>
         </div>
         <div class="field">
-          <label for="message">A note for the parents-to-be <span class="hint">optional</span></label>
+          <label for="message">A note for the parents-to-be</label>
           <textarea id="message" name="message" placeholder="Well wishes, advice, or excitement..."></textarea>
         </div>
         <button type="submit" class="submit-btn" id="submitBtn">
@@ -647,19 +657,42 @@
   const guestNamesField = document.getElementById('guestNamesField');
   const guestsInput = document.getElementById('guests');
   const guestNamesContainer = document.getElementById('guestNamesContainer');
+  const guestNamesHint = document.getElementById('guestNamesHint');
+  const guestNamesError = document.getElementById('guestNamesError');
+  // Past this many plus-ones we need every name, not just the headcount.
+  const NAMES_REQUIRED_ABOVE = 2;
+
+  function guestNamesAreRequired() {
+    const total = parseInt(guestsInput.value, 10) || 1;
+    return attendingInput.value === 'yes' && (total - 1) > NAMES_REQUIRED_ABOVE;
+  }
+
+  function clearGuestNameErrors() {
+    guestNamesError.classList.remove('show');
+    guestNamesContainer.querySelectorAll('input.missing').forEach(i => i.classList.remove('missing'));
+  }
+
   function renderGuestNameFields() {
     const total = parseInt(guestsInput.value, 10) || 1;
     const plusOnes = Math.max(0, total - 1);
+    const namesRequired = guestNamesAreRequired();
     const existing = Array.from(guestNamesContainer.querySelectorAll('input')).map(i => i.value);
     guestNamesContainer.innerHTML = '';
     guestNamesField.classList.toggle('show', attendingInput.value === 'yes' && plusOnes > 0);
+    guestNamesHint.textContent = namesRequired ? ' required' : '';
     for (let i = 0; i < plusOnes; i++) {
       const input = document.createElement('input');
       input.type = 'text';
       input.placeholder = `Plus-one ${i + 1} name`;
       input.value = existing[i] || '';
+      if (namesRequired) input.setAttribute('aria-required', 'true');
+      input.addEventListener('input', () => {
+        if (input.value.trim()) input.classList.remove('missing');
+        if (!guestNamesContainer.querySelector('input.missing')) guestNamesError.classList.remove('show');
+      });
       guestNamesContainer.appendChild(input);
     }
+    if (!namesRequired) clearGuestNameErrors();
   }
   function setAttending(value) {
     attendingInput.value = value;
@@ -841,6 +874,18 @@
       alert("Let us know whether you'll be joining before sending.");
       return;
     }
+    if (guestNamesAreRequired()) {
+      const nameFields = Array.from(guestNamesContainer.querySelectorAll('input'));
+      const blank = nameFields.filter(i => !i.value.trim());
+      if (blank.length) {
+        nameFields.forEach(i => i.classList.toggle('missing', !i.value.trim()));
+        guestNamesError.classList.add('show');
+        guestNamesField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        blank[0].focus({ preventScroll: true });
+        return;
+      }
+    }
+    clearGuestNameErrors();
     const submitSteam = document.getElementById('submitSteam');
     if (submitSteam) {
       submitSteam.classList.remove('burst');
