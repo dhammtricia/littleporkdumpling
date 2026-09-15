@@ -1156,7 +1156,15 @@
     lockPassword.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') tryUnlock();
     });
-    lockPassword.focus();
+    const lockNameField = document.getElementById('lockName');
+    const lockEmailField = document.getElementById('lockEmail');
+    lockNameField.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); lockEmailField.focus(); }
+    });
+    lockEmailField.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); lockPassword.focus(); }
+    });
+    lockNameField.focus();
   })();
 </script>
 </body>
