@@ -486,6 +486,73 @@
     border-radius: 3px; font-family: 'Fraunces', serif; font-size: 16px; cursor: pointer;
   }
   #lockError { color: #93321A; margin-top: 12px; display: none; }
+  /* ---- RSVP steps ---- */
+  .step { display: none; }
+  .step.show { display: block; }
+  .step-intro { font-size: 14px; color: #6A6455; margin: 0 0 18px; line-height: 1.55; }
+  .party-name {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--sage-deep);
+    margin: 0 0 4px;
+  }
+  .member {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--cream-deep);
+  }
+  .member:first-child { padding-top: 4px; }
+  .member:last-child { border-bottom: none; }
+  .member-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 9px;
+  }
+  .member.missing .member-name { color: var(--terracotta); }
+  .member .attend-btn { font-size: 14px; padding: 11px 8px; }
+  .plus-one-name { margin-bottom: 9px; }
+  .plus-one-name:disabled { opacity: .5; cursor: not-allowed; }
+  input.missing, .member.missing .attend-btn {
+    border-color: var(--terracotta);
+  }
+  input.missing { background: #FBF0E9; }
+  .choice-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--sage-soft);
+    background: var(--cream);
+    border-radius: 3px;
+    font-family: 'Work Sans', sans-serif;
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease;
+  }
+  .choice-btn:hover { background: #EEF4E9; border-color: var(--sage-deep); }
+  .choice-btn:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; }
+  .choice-name { font-size: 15px; font-weight: 500; color: var(--ink); }
+  .choice-size { font-size: 13px; color: #7A7565; white-space: nowrap; }
+  .text-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 6px;
+    background: none;
+    border: none;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 13px;
+    color: #7A7565;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .text-btn:hover { color: var(--sage-deep); }
+  .text-btn:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -585,41 +652,45 @@
   <section>
     <div class="section-label">Your reply</div>
     <div class="steamer-card">
-      <form id="rsvpForm">
+
+      <!-- Step 1: find your invitation on the guest list -->
+      <div id="lookupStep" class="step show">
         <div class="field">
-          <label for="name">Your name</label>
-          <input type="text" id="name" name="name" required autocomplete="name">
+          <label for="lookupName">Your name <span class="hint">as it appears on your invitation</span></label>
+          <input type="text" id="lookupName" autocomplete="name" placeholder="First and last name">
+          <p class="field-error" id="lookupError" role="alert"></p>
         </div>
+        <button type="button" class="submit-btn" id="lookupBtn">
+          <span id="lookupBtnLabel">Find my invitation</span>
+        </button>
+        <p class="form-note">Kindly reply by November 1st.</p>
+      </div>
+
+      <!-- Step 1b: the name matches more than one invitation -->
+      <div id="chooserStep" class="step">
+        <p class="step-intro">More than one invitation is listed under that name. Which one is yours?</p>
+        <div id="chooserList"></div>
+        <button type="button" class="text-btn" data-back>Try a different name</button>
+      </div>
+
+      <!-- Step 2: answer for everyone on the invitation -->
+      <form id="rsvpForm" class="step">
+        <h3 class="party-name" id="partyName"></h3>
+        <p class="step-intro" id="partyIntro"></p>
+        <div id="returningBanner" class="returning-banner"></div>
+
+        <div id="memberList"></div>
+        <p class="field-error" id="memberError" role="alert"></p>
+
         <div class="field">
           <label for="email">Email <span class="hint">for your RSVP confirmation and updates</span></label>
           <input type="email" id="email" name="email" autocomplete="email">
-          <div id="returningBanner" class="returning-banner">Welcome back! We've filled in your last RSVP — update anything below and resubmit.</div>
-        </div>
-        <div class="field">
-          <label id="attendLabel">Will you be there?</label>
-          <div class="attend-group" role="group" aria-labelledby="attendLabel">
-            <button type="button" class="attend-btn" id="attendYes" aria-pressed="false">Joyfully attending<span class="check-mark">✓</span></button>
-            <button type="button" class="attend-btn" id="attendNo" aria-pressed="false">Can't make it<span class="check-mark">✕</span></button>
-          </div>
-          <input type="hidden" id="attending" name="attending" required>
-        </div>
-        <div class="field" id="guestsField">
-          <label for="guests">Number attending <span class="hint">including you</span></label>
-          <div class="stepper">
-            <button type="button" class="stepper-btn" id="guestsMinus" aria-label="Decrease number attending">−</button>
-            <input type="number" id="guests" name="guests" min="1" max="10" value="1" inputmode="numeric">
-            <button type="button" class="stepper-btn" id="guestsPlus" aria-label="Increase number attending">+</button>
-          </div>
-        </div>
-        <div class="field" id="guestNamesField">
-          <label>Names of your plus-ones<span class="hint" id="guestNamesHint"></span></label>
-          <div id="guestNamesContainer"></div>
-          <p class="field-error" id="guestNamesError" role="alert">Add a name for each plus-one so we know who to expect at the table.</p>
         </div>
         <div class="field">
           <label for="message">A note for the parents-to-be</label>
           <textarea id="message" name="message" placeholder="Well wishes, advice, or excitement..."></textarea>
         </div>
+
         <button type="submit" class="submit-btn" id="submitBtn">
           <svg class="submit-steam" id="submitSteam" viewBox="0 0 90 34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M28 30 C 24 22, 34 16, 30 8" />
@@ -628,9 +699,11 @@
           </svg>
           <span id="submitBtnLabel">Send RSVP</span>
         </button>
+        <button type="button" class="text-btn" data-back>Not your invitation? Start over</button>
         <p class="form-note">Kindly reply by November 1st.</p>
       </form>
-      <div class="confirm" id="confirmMsg">
+
+      <div class="confirm step" id="confirmMsg">
         <h2>Your RSVP arrived</h2>
         <p id="confirmText">Thank you — we can't wait to see you there.</p>
         <div class="calendar-buttons" id="calendarButtons">
@@ -650,155 +723,403 @@
 </div>
 </div>
 <script>
-  const attendYes = document.getElementById('attendYes');
-  const attendNo = document.getElementById('attendNo');
-  const attendingInput = document.getElementById('attending');
-  const guestsField = document.getElementById('guestsField');
-  const guestNamesField = document.getElementById('guestNamesField');
-  const guestsInput = document.getElementById('guests');
-  const guestNamesContainer = document.getElementById('guestNamesContainer');
-  const guestNamesHint = document.getElementById('guestNamesHint');
-  const guestNamesError = document.getElementById('guestNamesError');
-  // Past this many plus-ones we need every name, not just the headcount.
-  const NAMES_REQUIRED_ABOVE = 2;
+  /* ---- RSVP: look up an invitation, then answer for the whole household ---- */
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
 
-  function guestNamesAreRequired() {
-    const total = parseInt(guestsInput.value, 10) || 1;
-    return attendingInput.value === 'yes' && (total - 1) > NAMES_REQUIRED_ABOVE;
+  const lookupStep = document.getElementById('lookupStep');
+  const chooserStep = document.getElementById('chooserStep');
+  const chooserList = document.getElementById('chooserList');
+  const lookupName = document.getElementById('lookupName');
+  const lookupBtn = document.getElementById('lookupBtn');
+  const lookupBtnLabel = document.getElementById('lookupBtnLabel');
+  const lookupError = document.getElementById('lookupError');
+  const form = document.getElementById('rsvpForm');
+  const partyNameEl = document.getElementById('partyName');
+  const partyIntro = document.getElementById('partyIntro');
+  const returningBanner = document.getElementById('returningBanner');
+  const memberList = document.getElementById('memberList');
+  const memberError = document.getElementById('memberError');
+  const emailInput = document.getElementById('email');
+  const messageInput = document.getElementById('message');
+  const submitBtn = document.getElementById('submitBtn');
+  const confirmMsg = document.getElementById('confirmMsg');
+  const confirmText = document.getElementById('confirmText');
+
+  let currentParty = null;   // the household being answered for
+  let answers = {};          // row number -> 'yes' | 'no'
+  let plusOneNames = {};     // row number -> typed name
+
+  function showStep(step) {
+    [lookupStep, chooserStep, form, confirmMsg].forEach(el => el.classList.remove('show'));
+    step.classList.add('show');
   }
 
-  function clearGuestNameErrors() {
-    guestNamesError.classList.remove('show');
-    guestNamesContainer.querySelectorAll('input.missing').forEach(i => i.classList.remove('missing'));
+  function setLookupError(text) {
+    lookupError.textContent = text || '';
+    lookupError.classList.toggle('show', !!text);
   }
 
-  function renderGuestNameFields() {
-    const total = parseInt(guestsInput.value, 10) || 1;
-    const plusOnes = Math.max(0, total - 1);
-    const namesRequired = guestNamesAreRequired();
-    const existing = Array.from(guestNamesContainer.querySelectorAll('input')).map(i => i.value);
-    guestNamesContainer.innerHTML = '';
-    guestNamesField.classList.toggle('show', attendingInput.value === 'yes' && plusOnes > 0);
-    guestNamesHint.textContent = namesRequired ? ' required' : '';
-    for (let i = 0; i < plusOnes; i++) {
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = `Plus-one ${i + 1} name`;
-      input.value = existing[i] || '';
-      if (namesRequired) input.setAttribute('aria-required', 'true');
-      input.addEventListener('input', () => {
-        if (input.value.trim()) input.classList.remove('missing');
-        if (!guestNamesContainer.querySelector('input.missing')) guestNamesError.classList.remove('show');
-      });
-      guestNamesContainer.appendChild(input);
-    }
-    if (!namesRequired) clearGuestNameErrors();
-  }
-  function setAttending(value) {
-    attendingInput.value = value;
-    attendYes.setAttribute('aria-pressed', value === 'yes' ? 'true' : 'false');
-    attendNo.setAttribute('aria-pressed', value === 'no' ? 'true' : 'false');
-    guestsField.classList.toggle('show', value === 'yes');
-    renderGuestNameFields();
-  }
-  attendYes.addEventListener('click', () => setAttending('yes'));
-  attendNo.addEventListener('click', () => setAttending('no'));
-  guestsInput.addEventListener('input', renderGuestNameFields);
-  const guestsMinus = document.getElementById('guestsMinus');
-  const guestsPlus = document.getElementById('guestsPlus');
-  function stepGuests(delta) {
-    const min = parseInt(guestsInput.min, 10);
-    const max = parseInt(guestsInput.max, 10);
-    const current = parseInt(guestsInput.value, 10) || min;
-    const next = Math.min(max, Math.max(min, current + delta));
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) {
-      guestsInput.value = next;
-      renderGuestNameFields();
+  /* ---- Step 1: find the invitation ---- */
+
+  // `silent` is used for the lock-screen handoff: try the name they already
+  // typed at the gate, but don't greet them with an error if it doesn't match.
+  async function findInvitation(silent) {
+    const typed = lookupName.value.trim();
+    if (!typed) {
+      if (!silent) {
+        setLookupError('Enter your name to find your invitation.');
+        lookupName.focus();
+      }
       return;
     }
-    guestsInput.classList.add('bump');
-    setTimeout(() => {
-      guestsInput.value = next;
-      renderGuestNameFields();
-      guestsInput.classList.remove('bump');
-    }, 130);
+    setLookupError('');
+    lookupBtn.disabled = true;
+    lookupBtnLabel.textContent = 'Looking...';
+    try {
+      const res = await fetch(SCRIPT_URL + '?name=' + encodeURIComponent(typed));
+      const data = await res.json();
+      if (silent && data && data.status !== 'ok') return; // let them try again themselves
+      handleLookup(data);
+    } catch (err) {
+      if (!silent) setLookupError("We couldn't reach the guest list. Check your connection and try again.");
+    } finally {
+      lookupBtn.disabled = false;
+      lookupBtnLabel.textContent = 'Find my invitation';
+    }
   }
-  guestsMinus.addEventListener('click', () => stepGuests(-1));
-  guestsPlus.addEventListener('click', () => stepGuests(1));
 
-  // Look up an existing RSVP by email so returning guests can edit instead of duplicating.
-  const emailInput = document.getElementById('email');
-  const returningBanner = document.getElementById('returningBanner');
-  const nameInput = document.getElementById('name');
-  const messageInput = document.getElementById('message');
-  let isEditingExisting = false;
-  let lastLookedUpEmail = '';
+  function handleLookup(data) {
+    if (!data || data.status === 'error') {
+      setLookupError("Something went wrong on our end. Try again in a moment.");
+      return;
+    }
+    if (data.status === 'notfound' || data.status === 'empty') {
+      setLookupError("We couldn't find that name on the guest list. Try the name as it appears on your invitation, or text Tricia and we'll sort it out.");
+      return;
+    }
+    if (data.status === 'multiple') {
+      renderChooser(data.choices);
+      showStep(chooserStep);
+      return;
+    }
+    openParty(data.party);
+  }
 
-  function applyLookupResult(record) {
-    if (record) {
-      isEditingExisting = true;
-      nameInput.value = record.name || nameInput.value;
-      setAttending(record.attending === 'no' ? 'no' : 'yes');
-      if (record.attending === 'yes') {
-        const total = parseInt(record.guests, 10) || 1;
-        guestsInput.value = Math.min(parseInt(guestsInput.max, 10), Math.max(parseInt(guestsInput.min, 10), total));
-        renderGuestNameFields();
-        if (record.guestNames) {
-          const names = record.guestNames.split(',').map(n => n.trim()).filter(Boolean);
-          const inputs = guestNamesContainer.querySelectorAll('input');
-          inputs.forEach((input, i) => { if (names[i]) input.value = names[i]; });
-        }
+  /* ---- Step 1b: more than one household answers to this name ---- */
+
+  function renderChooser(choices) {
+    chooserList.innerHTML = '';
+    choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.innerHTML = `<span class="choice-name"></span><span class="choice-size"></span>`;
+      btn.querySelector('.choice-name').textContent = choice.partyName || 'Invitation ' + choice.partyId;
+      btn.querySelector('.choice-size').textContent = choice.size === 1 ? '1 guest' : `${choice.size} guests`;
+      btn.addEventListener('click', () => loadParty(choice.partyId));
+      chooserList.appendChild(btn);
+    });
+  }
+
+  async function loadParty(partyId) {
+    try {
+      const res = await fetch(SCRIPT_URL + '?partyId=' + encodeURIComponent(partyId));
+      const data = await res.json();
+      if (data && data.status === 'ok') {
+        openParty(data.party);
+      } else {
+        showStep(lookupStep);
+        setLookupError("That invitation couldn't be opened. Try your name again.");
       }
-      messageInput.value = record.message || messageInput.value;
+    } catch (err) {
+      showStep(lookupStep);
+      setLookupError("We couldn't reach the guest list. Check your connection and try again.");
+    }
+  }
+
+  /* ---- Step 2: answer for everyone in the household ---- */
+
+  function openParty(party) {
+    currentParty = party;
+    answers = {};
+    plusOneNames = {};
+    party.members.forEach(m => {
+      if (m.attending === 'yes' || m.attending === 'no') answers[m.row] = m.attending;
+      if (m.plusOneName) plusOneNames[m.row] = m.plusOneName;
+    });
+
+    partyNameEl.textContent = party.partyName || 'Your invitation';
+    partyIntro.textContent = party.members.length === 1
+      ? 'Let us know whether you can make it.'
+      : 'Let us know who can make it. You can answer for everyone here.';
+
+    if (party.respondedBy) {
+      returningBanner.textContent = party.respondedAt
+        ? `${party.respondedBy} replied for your group on ${party.respondedAt}. Change anything below and send again.`
+        : `${party.respondedBy} already replied for your group. Change anything below and send again.`;
       returningBanner.classList.add('show');
     } else {
-      isEditingExisting = false;
       returningBanner.classList.remove('show');
     }
-    updateSubmitLabel();
+
+    messageInput.value = party.message || '';
+    renderMembers();
+    clearMemberError();
     updateGreeting();
+    showStep(form);
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  function renderMembers() {
+    memberList.innerHTML = '';
+    currentParty.members.forEach(member => {
+      const row = document.createElement('div');
+      row.className = 'member';
+      row.dataset.row = member.row;
+
+      const unnamedPlusOne = member.isPlusOne && !member.name;
+
+      if (unnamedPlusOne) {
+        const label = document.createElement('label');
+        label.className = 'member-name';
+        label.textContent = 'And one guest';
+        label.setAttribute('for', 'plusOne' + member.row);
+        row.appendChild(label);
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'plus-one-name';
+        input.id = 'plusOne' + member.row;
+        input.placeholder = 'Their name';
+        input.value = plusOneNames[member.row] || '';
+        input.addEventListener('input', () => {
+          plusOneNames[member.row] = input.value;
+          input.classList.remove('missing');
+          if (!memberList.querySelector('.missing')) clearMemberError();
+        });
+        row.appendChild(input);
+      } else {
+        const name = document.createElement('div');
+        name.className = 'member-name';
+        name.textContent = member.name;
+        row.appendChild(name);
+      }
+
+      const group = document.createElement('div');
+      group.className = 'attend-group';
+      group.setAttribute('role', 'group');
+      group.setAttribute('aria-label', unnamedPlusOne ? 'Your guest' : member.name);
+
+      [['yes', 'Attending', '✓'], ['no', "Can't make it", '✕']].forEach(([value, text, mark]) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'attend-btn';
+        btn.dataset.choice = value;
+        btn.innerHTML = `${text}<span class="check-mark">${mark}</span>`;
+        btn.setAttribute('aria-pressed', answers[member.row] === value ? 'true' : 'false');
+        btn.addEventListener('click', () => {
+          answers[member.row] = value;
+          group.querySelectorAll('.attend-btn').forEach(b => {
+            b.setAttribute('aria-pressed', b.dataset.choice === value ? 'true' : 'false');
+          });
+          row.classList.remove('missing');
+          if (!memberList.querySelector('.missing')) clearMemberError();
+          renderPlusOneState();
+        });
+        group.appendChild(btn);
+      });
+
+      row.appendChild(group);
+      memberList.appendChild(row);
+    });
+    renderPlusOneState();
+  }
+
+  // A plus-one only needs a name if they're actually coming.
+  function renderPlusOneState() {
+    currentParty.members.forEach(member => {
+      if (!(member.isPlusOne && !member.name)) return;
+      const input = document.getElementById('plusOne' + member.row);
+      if (!input) return;
+      const coming = answers[member.row] === 'yes';
+      input.disabled = !coming;
+      if (!coming) input.classList.remove('missing');
+    });
+  }
+
+  function clearMemberError() {
+    memberError.classList.remove('show');
+    memberList.querySelectorAll('.missing').forEach(el => el.classList.remove('missing'));
+  }
+
+  function showMemberError(text) {
+    memberError.textContent = text;
+    memberError.classList.add('show');
+  }
+
+  /* ---- Submitting ---- */
+
+  function validateParty() {
+    let firstProblem = null;
+    memberList.querySelectorAll('.missing').forEach(el => el.classList.remove('missing'));
+
+    // Everyone needs an answer.
+    const unanswered = currentParty.members.filter(m => !answers[m.row]);
+    if (unanswered.length) {
+      unanswered.forEach(m => {
+        const row = memberList.querySelector(`.member[data-row="${m.row}"]`);
+        if (row) { row.classList.add('missing'); if (!firstProblem) firstProblem = row; }
+      });
+      showMemberError(unanswered.length === 1
+        ? 'Choose attending or can\u2019t make it for everyone on the list.'
+        : 'Choose attending or can\u2019t make it for everyone on the list.');
+      if (firstProblem) firstProblem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+
+    // A plus-one who is coming needs a name.
+    const namelessGuest = currentParty.members.filter(m =>
+      m.isPlusOne && !m.name && answers[m.row] === 'yes' && !(plusOneNames[m.row] || '').trim()
+    );
+    if (namelessGuest.length) {
+      namelessGuest.forEach(m => {
+        const input = document.getElementById('plusOne' + m.row);
+        if (input) { input.classList.add('missing'); if (!firstProblem) firstProblem = input; }
+      });
+      showMemberError('Add a name for your guest so we know who to expect at the table.');
+      if (firstProblem) {
+        firstProblem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstProblem.focus({ preventScroll: true });
+      }
+      return false;
+    }
+
+    clearMemberError();
+    return true;
+  }
+
+  function buildResponses() {
+    return currentParty.members.map(m => ({
+      row: m.row,
+      attending: answers[m.row] || '',
+      plusOneName: (m.isPlusOne && !m.name && answers[m.row] === 'yes')
+        ? (plusOneNames[m.row] || '').trim()
+        : ''
+    }));
+  }
+
+  function attendingNames() {
+    return currentParty.members
+      .filter(m => answers[m.row] === 'yes')
+      .map(m => (m.isPlusOne && !m.name) ? (plusOneNames[m.row] || 'your guest').trim() : m.name)
+      .filter(Boolean);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentParty) return;
+    if (!validateParty()) return;
+
+    const submitSteam = document.getElementById('submitSteam');
+    if (submitSteam) {
+      submitSteam.classList.remove('burst');
+      void submitSteam.offsetWidth;
+      submitSteam.classList.add('burst');
+    }
+
+    submitBtn.disabled = true;
+    const submitBtnLabel = document.getElementById('submitBtnLabel');
+    if (submitBtnLabel) submitBtnLabel.textContent = 'Sending...';
+
+    const payload = {
+      partyId: currentParty.partyId,
+      responses: buildResponses(),
+      respondedBy: lookupName.value.trim() || currentParty.partyName,
+      email: emailInput.value.trim(),
+      message: messageInput.value.trim()
+    };
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!data || data.status !== 'ok') throw new Error(data && data.status);
+      if (data.party) currentParty = data.party;
+      showConfirmation();
+    } catch (err) {
+      showMemberError("That didn't send. Check your connection and try again — sending twice is safe.");
+      submitBtn.disabled = false;
+      if (submitBtnLabel) submitBtnLabel.textContent = 'Send RSVP';
+    }
+  });
+
+  function showConfirmation() {
+    const coming = attendingNames();
+    if (coming.length) {
+      const list = coming.length === 1
+        ? coming[0]
+        : coming.slice(0, -1).join(', ') + ' and ' + coming[coming.length - 1];
+      confirmText.textContent = coming.length === 1
+        ? `Thank you — we can't wait to see you there. We have ${list} down as attending.`
+        : `Thank you — we can't wait to see you there. We have ${coming.length} attending: ${list}.`;
+    } else {
+      confirmText.textContent = "Thank you for letting us know — you'll be missed.";
+    }
+    document.getElementById('calendarButtons').classList.toggle('show', coming.length > 0);
+    showStep(confirmMsg);
+    confirmMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ---- Navigation ---- */
+
+  lookupBtn.addEventListener('click', () => findInvitation(false));
+  lookupName.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); findInvitation(false); }
+  });
+
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentParty = null;
+      answers = {};
+      plusOneNames = {};
+      updateGreeting();
+      showStep(lookupStep);
+      lookupName.focus();
+    });
+  });
+
+  document.getElementById('editRsvpBtn').addEventListener('click', () => {
+    submitBtn.disabled = false;
+    const submitBtnLabel = document.getElementById('submitBtnLabel');
+    if (submitBtnLabel) submitBtnLabel.textContent = 'Send RSVP';
+    showStep(form);
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   function updateGreeting() {
     const heroTitle = document.getElementById('heroTitle');
     const heroSub = document.getElementById('heroSub');
-    const name = nameInput.value.trim();
     if (!heroTitle) return;
-    if (!name) {
+    const defaultSub = 'Celebrating <span class="names">Tricia, Connor,</span> and the newest addition to their table.';
+    if (!currentParty) {
       heroTitle.textContent = 'Please join us for a baby shower';
-      if (heroSub) heroSub.innerHTML = 'Celebrating <span class="names">Tricia, Connor,</span> and the newest addition to their table.';
+      if (heroSub) heroSub.innerHTML = defaultSub;
       return;
     }
-    if (isEditingExisting) {
-      heroTitle.textContent = `Welcome back, ${name}!`;
-      if (heroSub) heroSub.textContent = "Here are the details of your RSVP for the baby shower — feel free to make changes below.";
+    const first = (lookupName.value.trim().split(/\s+/)[0]) || '';
+    if (currentParty.respondedBy) {
+      heroTitle.textContent = first ? `Welcome back, ${first}!` : 'Welcome back!';
+      if (heroSub) heroSub.textContent = 'Here are the details of your RSVP for the baby shower — feel free to make changes below.';
     } else {
-      heroTitle.textContent = `Hello, ${name}! Please join us for a baby shower.`;
-      if (heroSub) heroSub.innerHTML = 'Celebrating <span class="names">Tricia, Connor,</span> and the newest addition to their table.';
+      heroTitle.textContent = first
+        ? `Hello, ${first}! Please join us for a baby shower.`
+        : 'Please join us for a baby shower';
+      if (heroSub) heroSub.innerHTML = defaultSub;
     }
   }
-
-  function updateSubmitLabel() {
-    const label = document.getElementById('submitBtnLabel');
-    const text = isEditingExisting ? 'Update RSVP' : 'Send RSVP';
-    if (label) { label.textContent = text; } else { submitBtn.textContent = text; }
-  }
-
-  async function lookupEmail() {
-    const value = emailInput.value.trim();
-    if (!value || value === lastLookedUpEmail) return;
-    lastLookedUpEmail = value;
-    try {
-      const res = await fetch(SCRIPT_URL + '?email=' + encodeURIComponent(value), { method: 'GET' });
-      const data = await res.json();
-      applyLookupResult(data && data.found ? data.record : null);
-    } catch (err) {
-      // Silently ignore lookup failures — guest can still submit a fresh RSVP.
-    }
-  }
-  emailInput.addEventListener('blur', lookupEmail);
-  nameInput.addEventListener('input', updateGreeting);
 
   // Random fade in/out "meow" near each footer cat, at random angled positions
   (function () {
@@ -863,87 +1184,6 @@
       scheduleStar(i * 120 + Math.random() * 200);
     }
   })();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
-  const form = document.getElementById('rsvpForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const confirmMsg = document.getElementById('confirmMsg');
-  const confirmText = document.getElementById('confirmText');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!attendingInput.value) {
-      alert("Let us know whether you'll be joining before sending.");
-      return;
-    }
-    if (guestNamesAreRequired()) {
-      const nameFields = Array.from(guestNamesContainer.querySelectorAll('input'));
-      const blank = nameFields.filter(i => !i.value.trim());
-      if (blank.length) {
-        nameFields.forEach(i => i.classList.toggle('missing', !i.value.trim()));
-        guestNamesError.classList.add('show');
-        guestNamesField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        blank[0].focus({ preventScroll: true });
-        return;
-      }
-    }
-    clearGuestNameErrors();
-    const submitSteam = document.getElementById('submitSteam');
-    if (submitSteam) {
-      submitSteam.classList.remove('burst');
-      void submitSteam.offsetWidth;
-      submitSteam.classList.add('burst');
-    }
-    submitBtn.disabled = true;
-    const submitBtnLabel = document.getElementById('submitBtnLabel');
-    const sendingText = isEditingExisting ? 'Updating...' : 'Sending...';
-    if (submitBtnLabel) { submitBtnLabel.textContent = sendingText; } else { submitBtn.textContent = sendingText; }
-    const payload = {
-      name: document.getElementById('name').value,
-      email: document.getElementById('email').value,
-      attending: attendingInput.value,
-      guests: attendingInput.value === 'yes' ? document.getElementById('guests').value : '0',
-      guestNames: attendingInput.value === 'yes'
-        ? Array.from(guestNamesContainer.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean).join(', ')
-        : '',
-      message: document.getElementById('message').value
-    };
-    try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-      });
-      form.style.display = 'none';
-      if (attendingInput.value === 'yes') {
-        const totalGuests = parseInt(payload.guests, 10) || 1;
-        const rsvpCountText = totalGuests === 1 ? '1 person' : `${totalGuests} people`;
-        let msg = `Thank you — we can't wait to see you there. We have you down for ${rsvpCountText}`;
-        if (payload.guestNames) {
-          msg += ` (${document.getElementById('name').value.trim()} + ${payload.guestNames})`;
-        }
-        msg += '.';
-        confirmText.textContent = msg;
-      } else {
-        confirmText.textContent = "Thank you for letting us know — you'll be missed.";
-      }
-      document.getElementById('calendarButtons').classList.toggle('show', attendingInput.value === 'yes');
-      confirmMsg.classList.add('show');
-    } catch (err) {
-      alert("That didn't go through — check your connection and try again.");
-      submitBtn.disabled = false;
-      updateSubmitLabel();
-    }
-  });
-
-  const editRsvpBtn = document.getElementById('editRsvpBtn');
-  editRsvpBtn.addEventListener('click', () => {
-    confirmMsg.classList.remove('show');
-    form.style.display = '';
-    submitBtn.disabled = false;
-    isEditingExisting = true;
-    updateSubmitLabel();
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
 </script>
 <script>
   /* ---- Blue fireworks, triggered when the reveal video finishes ---- */
@@ -1117,13 +1357,16 @@
         // then check if they've already RSVP'd so the form can prefill for editing.
         const lockNameEl = document.getElementById('lockName');
         const lockEmailEl = document.getElementById('lockEmail');
-        if (typeof nameInput !== 'undefined' && lockNameEl && lockNameEl.value.trim()) {
-          nameInput.value = lockNameEl.value.trim();
+        const lookupNameEl = document.getElementById('lookupName');
+        if (lookupNameEl && lockNameEl && lockNameEl.value.trim()) {
+          lookupNameEl.value = lockNameEl.value.trim();
+          // Try to find their invitation now so it's ready when they scroll down.
+          // Stays quiet if the name doesn't match — they can retype it there.
+          if (typeof findInvitation === 'function') { findInvitation(true); }
         }
-        if (typeof updateGreeting === 'function') { updateGreeting(); }
-        if (typeof emailInput !== 'undefined' && lockEmailEl && lockEmailEl.value.trim()) {
-          emailInput.value = lockEmailEl.value.trim();
-          if (typeof lookupEmail === 'function') { lookupEmail(); }
+        const emailEl = document.getElementById('email');
+        if (emailEl && lockEmailEl && lockEmailEl.value.trim()) {
+          emailEl.value = lockEmailEl.value.trim();
         }
         happyUnlock();
       } else {
@@ -1156,15 +1399,7 @@
     lockPassword.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') tryUnlock();
     });
-    const lockNameField = document.getElementById('lockName');
-    const lockEmailField = document.getElementById('lockEmail');
-    lockNameField.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); lockEmailField.focus(); }
-    });
-    lockEmailField.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); lockPassword.focus(); }
-    });
-    lockNameField.focus();
+    lockPassword.focus();
   })();
 </script>
 </body>
