@@ -634,27 +634,27 @@
     <div class="section-label">Your reply</div>
     <div class="steamer-card">
 
-      <!-- Step 1: find your invitation on the guest list -->
+      <!-- Step 1: find the guest on the list -->
       <div id="lookupStep" class="step show">
         <div class="field">
-          <label for="lookupName">Your full name <span class="hint">first and last, as it appears on your invitation</span></label>
+          <label for="lookupName">Your full name <span class="hint">first and last, so we can look you up</span></label>
           <input type="text" id="lookupName" autocomplete="name" placeholder="First and last name">
           <p class="field-error" id="lookupError" role="alert"></p>
         </div>
         <button type="button" class="submit-btn" id="lookupBtn">
-          <span id="lookupBtnLabel">Find my invitation</span>
+          <span id="lookupBtnLabel">Find my name</span>
         </button>
         <p class="form-note">Kindly reply by November 1st.</p>
       </div>
 
-      <!-- Step 1b: the name matches more than one invitation -->
+      <!-- Step 1b: the name matches more than one person -->
       <div id="chooserStep" class="step">
-        <p class="step-intro">More than one invitation is listed under that name. Which one is yours?</p>
+        <p class="step-intro">More than one person on the guest list goes by that name. Which one is you?</p>
         <div id="chooserList"></div>
         <button type="button" class="text-btn" data-back>Try a different name</button>
       </div>
 
-      <!-- Step 2: answer for everyone on the invitation -->
+      <!-- Step 2: answer for everyone in the group -->
       <form id="rsvpForm" class="step">
         <h3 class="party-name" id="partyName"></h3>
         <p class="step-intro" id="partyIntro"></p>
@@ -680,7 +680,7 @@
           </svg>
           <span id="submitBtnLabel">Send RSVP</span>
         </button>
-        <button type="button" class="text-btn" data-back>Not your invitation? Start over</button>
+        <button type="button" class="text-btn" data-back>Not you? Start over</button>
         <p class="form-note">Kindly reply by November 1st.</p>
       </form>
 
@@ -723,7 +723,7 @@
 </div>
 </div>
 <script>
-  /* ---- RSVP: look up an invitation, then answer for the whole household ---- */
+  /* ---- RSVP: look up the guest, then answer for the whole household ---- */
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
 
   const lookupStep = document.getElementById('lookupStep');
@@ -759,7 +759,7 @@
     lookupError.classList.toggle('show', !!text);
   }
 
-  /* ---- Step 1: find the invitation ---- */
+  /* ---- Step 1: find the guest on the list ---- */
 
   // `silent` is used for the lock-screen handoff: try the name they already
   // typed at the gate, but don't greet them with an error if it doesn't match.
@@ -767,7 +767,7 @@
     const typed = lookupName.value.trim();
     if (!typed) {
       if (!silent) {
-        setLookupError('Enter your name to find your invitation.');
+        setLookupError('Enter your name so we can look you up.');
         lookupName.focus();
       }
       return;
@@ -784,7 +784,7 @@
       if (!silent) setLookupError("We couldn't reach the guest list. Check your connection and try again.");
     } finally {
       lookupBtn.disabled = false;
-      lookupBtnLabel.textContent = 'Find my invitation';
+      lookupBtnLabel.textContent = 'Find my name';
     }
   }
 
@@ -794,12 +794,12 @@
       return;
     }
     if (data.status === 'needfullname') {
-      setLookupError('Please enter your first and last name, as it appears on your invitation.');
+      setLookupError('Please enter both your first name and your last name.');
       lookupName.focus();
       return;
     }
     if (data.status === 'notfound' || data.status === 'empty') {
-      setLookupError("We couldn't find that name on the guest list. Try the name as it appears on your invitation, or text Tricia and we'll sort it out.");
+      setLookupError("We couldn't find that name on our guest list. Check the spelling, try the name we'd know you by, or text Tricia and she'll add you.");
       return;
     }
     if (data.status === 'multiple') {
@@ -814,13 +814,13 @@
 
   function renderChooser(choices) {
     chooserList.innerHTML = '';
-    choices.forEach(choice => {
+    choices.forEach((choice, i) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'choice-btn';
       btn.innerHTML = `<span class="choice-name"></span><span class="choice-size"></span>`;
-      btn.querySelector('.choice-name').textContent = choice.partyName || 'Invitation ' + choice.partyId;
-      btn.querySelector('.choice-size').textContent = choice.size === 1 ? '1 guest' : `${choice.size} guests`;
+      btn.querySelector('.choice-name').textContent = choice.partyName || 'Option ' + (i + 1);
+      btn.querySelector('.choice-size').textContent = choice.size === 1 ? 'on their own' : `with ${choice.size - 1} others`;
       btn.addEventListener('click', () => loadParty(choice.partyId));
       chooserList.appendChild(btn);
     });
@@ -834,7 +834,7 @@
         openParty(data.party);
       } else {
         showStep(lookupStep);
-        setLookupError("That invitation couldn't be opened. Try your name again.");
+        setLookupError("We couldn't open that. Try your name again.");
       }
     } catch (err) {
       showStep(lookupStep);
@@ -853,15 +853,19 @@
       if (m.plusOneName) plusOneNames[m.row] = m.plusOneName;
     });
 
-    partyNameEl.textContent = party.partyName || 'Your invitation';
+    partyNameEl.textContent = party.partyName || 'Your RSVP';
     partyIntro.textContent = party.members.length === 1
       ? 'Let us know whether you can make it.'
       : 'Let us know who can make it. You can answer for everyone here.';
 
     if (party.respondedBy) {
-      returningBanner.textContent = party.respondedAt
-        ? `${party.respondedBy} replied for your group on ${party.respondedAt}. Change anything below and send again.`
-        : `${party.respondedBy} already replied for your group. Change anything below and send again.`;
+      var when = party.respondedAt ? ' on ' + party.respondedAt : '';
+      // A party of one can only have been answered by that person, so naming
+      // the responder back to them reads oddly. Naming them matters only when
+      // somebody else in the household replied on their behalf.
+      returningBanner.textContent = party.members.length === 1
+        ? `This was already answered${when}. Change anything below and send again.`
+        : `${party.respondedBy} already replied for everyone here${when}. Change anything below and send again.`;
       returningBanner.classList.add('show');
     } else {
       returningBanner.classList.remove('show');
@@ -1365,7 +1369,7 @@
         const lookupNameEl = document.getElementById('lookupName');
         if (lookupNameEl && lockNameEl && lockNameEl.value.trim()) {
           lookupNameEl.value = lockNameEl.value.trim();
-          // Try to find their invitation now so it's ready when they scroll down.
+          // Look them up now so their group is ready when they scroll down.
           // Stays quiet if the name doesn't match — they can retype it there.
           if (typeof findInvitation === 'function') { findInvitation(true); }
         }
