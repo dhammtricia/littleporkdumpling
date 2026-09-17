@@ -637,7 +637,7 @@
       <!-- Step 1: find your invitation on the guest list -->
       <div id="lookupStep" class="step show">
         <div class="field">
-          <label for="lookupName">Your name <span class="hint">as it appears on your invitation</span></label>
+          <label for="lookupName">Your full name <span class="hint">first and last, as it appears on your invitation</span></label>
           <input type="text" id="lookupName" autocomplete="name" placeholder="First and last name">
           <p class="field-error" id="lookupError" role="alert"></p>
         </div>
@@ -791,6 +791,11 @@
   function handleLookup(data) {
     if (!data || data.status === 'error') {
       setLookupError("Something went wrong on our end. Try again in a moment.");
+      return;
+    }
+    if (data.status === 'needfullname') {
+      setLookupError('Please enter your first and last name, as it appears on your invitation.');
+      lookupName.focus();
       return;
     }
     if (data.status === 'notfound' || data.status === 'empty') {
