@@ -901,6 +901,16 @@
       returningBanner.classList.remove('show');
     }
 
+    // Somebody who already replied gave us an email then; bring it back
+    // rather than making them type it again. Anything the guest list has on
+    // record wins over what we remembered locally this session.
+    const knownEmail = party.email || party.respondedEmail || party.contactEmail || '';
+    if (knownEmail) {
+      emailInput.value = knownEmail;
+    } else if (!emailInput.value) {
+      emailInput.value = sessionStorage.getItem(SESSION_EMAIL_KEY) || '';
+    }
+
     messageInput.value = party.message || '';
     renderMembers();
     clearMemberError();
