@@ -417,6 +417,14 @@
     position: fixed; inset: 0; background: var(--cream); z-index: 9999;
     display: flex; align-items: center; justify-content: flex-start; flex-direction: column;
     padding: 80px 24px 24px; text-align: center; font-family: 'Work Sans', sans-serif;
+    overflow-y: auto;
+  }
+  /* Three fields and a dumpling need room; give some back on short screens. */
+  @media (max-height: 720px) {
+    #lockScreen { padding-top: 32px; }
+    #lockScreen .lock-dumpling-wrap, #lockScreen .lock-dumpling { width: 92px; }
+    #lockScreen .lock-title { font-size: 21px; }
+    #lockScreen p { margin-bottom: 14px; }
   }
   .lock-dumpling { width: 130px; height: auto; display: block; margin: 0 auto 8px; }
   .lock-dumpling-wrap { position: relative; width: 130px; margin: 0 auto 8px; }
@@ -472,20 +480,22 @@
   }
   #lockScreen .lock-title { font-family: 'Fraunces', serif; font-size: 24px; color: var(--sage-deep); margin-bottom: 8px; }
   #lockScreen p { max-width: 320px; margin-bottom: 20px; color: var(--ink); }
-  #lockName, #lockEmail {
+  #lockPassword, #lockName, #lockEmail {
     padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
     background: #fff; border-radius: 3px; width: 240px; max-width: 80vw; margin-bottom: 12px;
     font-family: 'Work Sans', sans-serif; display: block;
   }
-  #lockPassword {
-    padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
-    background: #fff; border-radius: 3px; width: 240px; max-width: 80vw; margin-bottom: 12px;
+  #lockScreen input.missing { border-color: var(--terracotta); background: #FBF0E9; }
+  #lockScreen p.lock-hint {
+    font-size: 13px; color: #6A6455; max-width: 240px;
+    margin: -6px auto 14px; line-height: 1.45;
   }
   #lockSubmit {
     padding: 12px 24px; background: var(--terracotta); color: #fff; border: none;
     border-radius: 3px; font-family: 'Fraunces', serif; font-size: 16px; cursor: pointer;
   }
-  #lockError { color: #93321A; margin-top: 12px; display: none; }
+  #lockSubmit:disabled { opacity: .6; cursor: default; }
+  #lockScreen p#lockError { color: #93321A; margin: 12px auto 0; display: none; }
   /* ---- RSVP steps ---- */
   .step { display: none; }
   .step.show { display: block; }
@@ -565,10 +575,11 @@
     <div class="face-feature mouth-x">X</div>
   </div>
   <div class="lock-title">A little dumpling is on the way</div>
-  <p>This invite is password protected. Enter the password you were given to view it.</p>
-  <input type="text" id="lockName" placeholder="Your name" autocomplete="name">
+  <p>This invite is password protected. Enter the password you were given, then your name so we can find your invitation.</p>
+  <input type="password" id="lockPassword" placeholder="Password" autocomplete="current-password">
+  <input type="text" id="lockName" placeholder="First and last name" autocomplete="name">
+  <p class="lock-hint">First and last, so we can look you up on the guest list.</p>
   <input type="email" id="lockEmail" placeholder="Your email" autocomplete="email">
-  <input type="password" id="lockPassword" placeholder="Password">
   <button id="lockSubmit">Enter</button>
   <p id="lockError">Me-OW that password isn't right, try again.</p>
 </div>
@@ -726,6 +737,11 @@
   /* ---- RSVP: look up the guest, then answer for the whole household ---- */
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCPaMq7o58jS9RYorhw_A5s_cN6bCC7fLkP-E3cNHsIEp4jStzBYfkVLzsqqadaPnb/exec";
 
+  // What the guest told the lock screen, kept for the rest of the session so
+  // a refresh doesn't make them type their name and email a second time.
+  const SESSION_NAME_KEY = 'babyShowerName';
+  const SESSION_EMAIL_KEY = 'babyShowerEmail';
+
   const lookupStep = document.getElementById('lookupStep');
   const chooserStep = document.getElementById('chooserStep');
   const chooserList = document.getElementById('chooserList');
@@ -761,53 +777,72 @@
 
   /* ---- Step 1: find the guest on the list ---- */
 
-  // `silent` is used for the lock-screen handoff: try the name they already
-  // typed at the gate, but don't greet them with an error if it doesn't match.
-  async function findInvitation(silent) {
+  // The guest list is keyed on full names, so a first name on its own can't
+  // pull up a household. Two words that contain an actual letter or digit.
+  function hasFullName(value) {
+    return (value || '').trim().split(/\s+/)
+      .filter(word => word.replace(/[^\p{L}\p{N}]/gu, '').length > 0).length >= 2;
+  }
+
+  // Ask the guest list about a name. Returns the parsed reply, or null when
+  // the list couldn't be reached at all.
+  async function fetchInvitation(typed) {
+    try {
+      const res = await fetch(SCRIPT_URL + '?name=' + encodeURIComponent(typed));
+      return await res.json();
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // Show whatever came back and hand the status to the caller, so the lock
+  // screen can decide whether to let somebody through.
+  function presentInvitation(data, scroll) {
+    if (!data) return 'unreachable';
+    if (data.status === 'multiple') {
+      renderChooser(data.choices);
+      showStep(chooserStep);
+      return 'multiple';
+    }
+    if (data.status === 'ok' && data.party) {
+      openParty(data.party, { scroll: scroll !== false });
+      return 'ok';
+    }
+    return data.status || 'error';
+  }
+
+  // Wording for every way a lookup can come back short.
+  function lookupMessage(status) {
+    if (status === 'unreachable') return "We couldn't reach the guest list. Check your connection and try again.";
+    if (status === 'needfullname') return 'Please enter both your first name and your last name.';
+    if (status === 'notfound' || status === 'empty') return "We couldn't find that name on our guest list. Check the spelling, try the name we'd know you by, or text Tricia and she'll add you.";
+    return 'Something went wrong on our end. Try again in a moment.';
+  }
+
+  async function findInvitation() {
     const typed = lookupName.value.trim();
     if (!typed) {
-      if (!silent) {
-        setLookupError('Enter your name so we can look you up.');
-        lookupName.focus();
-      }
+      setLookupError('Enter your full name so we can look you up.');
+      lookupName.focus();
+      return;
+    }
+    if (!hasFullName(typed)) {
+      setLookupError(lookupMessage('needfullname'));
+      lookupName.focus();
       return;
     }
     setLookupError('');
     lookupBtn.disabled = true;
     lookupBtnLabel.textContent = 'Looking...';
-    try {
-      const res = await fetch(SCRIPT_URL + '?name=' + encodeURIComponent(typed));
-      const data = await res.json();
-      if (silent && data && data.status !== 'ok') return; // let them try again themselves
-      handleLookup(data);
-    } catch (err) {
-      if (!silent) setLookupError("We couldn't reach the guest list. Check your connection and try again.");
-    } finally {
-      lookupBtn.disabled = false;
-      lookupBtnLabel.textContent = 'Find my name';
-    }
-  }
-
-  function handleLookup(data) {
-    if (!data || data.status === 'error') {
-      setLookupError("Something went wrong on our end. Try again in a moment.");
-      return;
-    }
-    if (data.status === 'needfullname') {
-      setLookupError('Please enter both your first name and your last name.');
+    const status = presentInvitation(await fetchInvitation(typed), true);
+    if (status === 'ok' || status === 'multiple') {
+      sessionStorage.setItem(SESSION_NAME_KEY, typed);
+    } else {
+      setLookupError(lookupMessage(status));
       lookupName.focus();
-      return;
     }
-    if (data.status === 'notfound' || data.status === 'empty') {
-      setLookupError("We couldn't find that name on our guest list. Check the spelling, try the name we'd know you by, or text Tricia and she'll add you.");
-      return;
-    }
-    if (data.status === 'multiple') {
-      renderChooser(data.choices);
-      showStep(chooserStep);
-      return;
-    }
-    openParty(data.party);
+    lookupBtn.disabled = false;
+    lookupBtnLabel.textContent = 'Find my name';
   }
 
   /* ---- Step 1b: more than one household answers to this name ---- */
@@ -844,7 +879,8 @@
 
   /* ---- Step 2: answer for everyone in the household ---- */
 
-  function openParty(party) {
+  function openParty(party, opts) {
+    const scroll = !opts || opts.scroll !== false;
     currentParty = party;
     answers = {};
     plusOneNames = {};
@@ -876,7 +912,7 @@
     clearMemberError();
     updateGreeting();
     showStep(form);
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function renderMembers() {
@@ -1057,6 +1093,7 @@
       const data = await res.json();
       if (!data || data.status !== 'ok') throw new Error(data && data.status);
       if (data.party) currentParty = data.party;
+      sessionStorage.setItem(SESSION_EMAIL_KEY, payload.email);
       showConfirmation();
     } catch (err) {
       showMemberError("That didn't send. Check your connection and try again — sending twice is safe.");
@@ -1084,9 +1121,9 @@
 
   /* ---- Navigation ---- */
 
-  lookupBtn.addEventListener('click', () => findInvitation(false));
+  lookupBtn.addEventListener('click', () => findInvitation());
   lookupName.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); findInvitation(false); }
+    if (e.key === 'Enter') { e.preventDefault(); findInvitation(); }
   });
 
   document.querySelectorAll('[data-back]').forEach(btn => {
@@ -1344,11 +1381,38 @@
     const lockPassword = document.getElementById('lockPassword');
     const lockSubmit = document.getElementById('lockSubmit');
     const lockError = document.getElementById('lockError');
+    const lockName = document.getElementById('lockName');
+    const lockEmail = document.getElementById('lockEmail');
     const lockDumpling = document.querySelector('.lock-dumpling-wrap');
     const eyeLeft = document.querySelector('.eye-left');
     const eyeRight = document.querySelector('.eye-right');
     const faceCover = document.querySelector('.face-cover');
     const mouthX = document.querySelector('.mouth-x');
+
+    function showError(text, field) {
+      lockError.textContent = text;
+      lockError.style.display = 'block';
+      [lockPassword, lockName, lockEmail].forEach(el => el.classList.remove('missing'));
+      if (field) field.classList.add('missing');
+    }
+    function clearError() {
+      lockError.style.display = 'none';
+      [lockPassword, lockName, lockEmail].forEach(el => el.classList.remove('missing'));
+    }
+    // The dumpling pulls a face when something's wrong.
+    function sulk(field) {
+      if (!lockDumpling) return;
+      lockDumpling.classList.remove('shake');
+      [lockPassword, lockName, lockEmail].forEach(el => el.classList.remove('shake'));
+      void lockDumpling.offsetWidth;
+      lockDumpling.classList.add('shake');
+      if (field) field.classList.add('shake');
+      [eyeLeft, eyeRight, faceCover, mouthX].forEach(el => el && el.classList.add('show'));
+      setTimeout(() => {
+        [eyeLeft, eyeRight, faceCover, mouthX].forEach(el => el && el.classList.remove('show'));
+      }, 500);
+    }
+
     function unlock() {
       lockScreen.style.display = 'none';
       document.body.style.overflow = '';
@@ -1359,56 +1423,86 @@
       lockDumpling.classList.add('happy-bounce');
       setTimeout(unlock, 900);
     }
-    function tryUnlock() {
-      if (lockPassword.value.trim().toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
-        sessionStorage.setItem(STORAGE_KEY, "true");
-        // Carry over the name/email they typed on the lock screen into the RSVP form,
-        // then check if they've already RSVP'd so the form can prefill for editing.
-        const lockNameEl = document.getElementById('lockName');
-        const lockEmailEl = document.getElementById('lockEmail');
-        const lookupNameEl = document.getElementById('lookupName');
-        if (lookupNameEl && lockNameEl && lockNameEl.value.trim()) {
-          lookupNameEl.value = lockNameEl.value.trim();
-          // Look them up now so their group is ready when they scroll down.
-          // Stays quiet if the name doesn't match — they can retype it there.
-          if (typeof findInvitation === 'function') { findInvitation(true); }
-        }
-        const emailEl = document.getElementById('email');
-        if (emailEl && lockEmailEl && lockEmailEl.value.trim()) {
-          emailEl.value = lockEmailEl.value.trim();
-        }
-        happyUnlock();
-      } else {
-        lockError.style.display = 'block';
-        lockPassword.value = '';
-        lockPassword.classList.remove('shake');
-        lockDumpling.classList.remove('shake');
-        void lockPassword.offsetWidth;
-        lockPassword.classList.add('shake');
-        lockDumpling.classList.add('shake');
-        eyeLeft.classList.add('show');
-        eyeRight.classList.add('show');
-        faceCover.classList.add('show');
-        mouthX.classList.add('show');
-        setTimeout(() => {
-          eyeLeft.classList.remove('show');
-          eyeRight.classList.remove('show');
-          faceCover.classList.remove('show');
-          mouthX.classList.remove('show');
-        }, 500);
-        lockPassword.focus();
-      }
+
+    // The name and email asked for here are the same ones the RSVP form needs,
+    // so hand them straight over rather than asking twice.
+    function carryOver(name, email) {
+      const lookupNameEl = document.getElementById('lookupName');
+      const emailEl = document.getElementById('email');
+      if (lookupNameEl) lookupNameEl.value = name;
+      if (emailEl && email) emailEl.value = email;
     }
+
+    async function tryUnlock() {
+      if (lockPassword.value.trim().toLowerCase() !== CORRECT_PASSWORD.toLowerCase()) {
+        showError("Me-OW that password isn't right, try again.", lockPassword);
+        lockPassword.value = '';
+        sulk(lockPassword);
+        lockPassword.focus();
+        return;
+      }
+
+      const name = lockName.value.trim();
+      const email = lockEmail.value.trim();
+      if (!name) {
+        showError('Add your name so we can find your invitation.', lockName);
+        lockName.focus();
+        return;
+      }
+      if (!hasFullName(name)) {
+        showError('Please add your last name too — a first name on its own won\u2019t find you on the guest list.', lockName);
+        lockName.focus();
+        return;
+      }
+
+      clearError();
+      lockSubmit.disabled = true;
+      lockSubmit.textContent = 'Checking the list...';
+      carryOver(name, email);
+      const status = presentInvitation(await fetchInvitation(name), false);
+      lockSubmit.disabled = false;
+      lockSubmit.textContent = 'Enter';
+
+      // Only somebody we can find on the guest list gets through.
+      if (status !== 'ok' && status !== 'multiple') {
+        showError(lookupMessage(status), lockName);
+        sulk(lockName);
+        lockName.focus();
+        return;
+      }
+
+      sessionStorage.setItem(STORAGE_KEY, "true");
+      sessionStorage.setItem(SESSION_NAME_KEY, name);
+      sessionStorage.setItem(SESSION_EMAIL_KEY, email);
+      happyUnlock();
+    }
+
     if (sessionStorage.getItem(STORAGE_KEY) === "true") {
+      // Already through the gate this session — restore what they told us and
+      // reopen their RSVP so they don't have to type any of it again.
+      const savedName = sessionStorage.getItem(SESSION_NAME_KEY) || '';
+      const savedEmail = sessionStorage.getItem(SESSION_EMAIL_KEY) || '';
+      lockName.value = savedName;
+      lockEmail.value = savedEmail;
+      carryOver(savedName, savedEmail);
       unlock();
+      if (savedName) {
+        fetchInvitation(savedName).then(data => presentInvitation(data, false));
+      }
     } else {
       document.body.style.overflow = 'hidden';
+      lockPassword.focus();
     }
+
     lockSubmit.addEventListener('click', tryUnlock);
-    lockPassword.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') tryUnlock();
+    [lockPassword, lockName, lockEmail].forEach(field => {
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); }
+      });
+      field.addEventListener('input', () => {
+        if (field.classList.contains('missing')) clearError();
+      });
     });
-    lockPassword.focus();
   })();
 </script>
 </body>
