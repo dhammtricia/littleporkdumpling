@@ -419,7 +419,7 @@
     padding: 80px 24px 24px; text-align: center; font-family: 'Work Sans', sans-serif;
     overflow-y: auto;
   }
-  /* Three fields and a dumpling need room; give some back on short screens. */
+  /* Two fields and a dumpling need room; give some back on short screens. */
   @media (max-height: 720px) {
     #lockScreen { padding-top: 32px; }
     #lockScreen .lock-dumpling-wrap, #lockScreen .lock-dumpling { width: 92px; }
@@ -480,16 +480,12 @@
   }
   #lockScreen .lock-title { font-family: 'Fraunces', serif; font-size: 24px; color: var(--sage-deep); margin-bottom: 8px; }
   #lockScreen p { max-width: 320px; margin-bottom: 20px; color: var(--ink); }
-  #lockPassword, #lockName, #lockEmail {
+  #lockPassword, #lockName {
     padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
     background: #fff; border-radius: 3px; width: 240px; max-width: 80vw; margin-bottom: 12px;
     font-family: 'Work Sans', sans-serif; display: block;
   }
   #lockScreen input.missing { border-color: var(--terracotta); background: #FBF0E9; }
-  #lockScreen p.lock-hint {
-    font-size: 13px; color: #6A6455; max-width: 240px;
-    margin: -6px auto 14px; line-height: 1.45;
-  }
   #lockSubmit {
     padding: 12px 24px; background: var(--terracotta); color: #fff; border: none;
     border-radius: 3px; font-family: 'Fraunces', serif; font-size: 16px; cursor: pointer;
@@ -577,9 +573,7 @@
   <div class="lock-title">A little dumpling is on the way</div>
   <p>This invite is password protected. Enter the password you were given, then your name so we can find your invitation.</p>
   <input type="password" id="lockPassword" placeholder="Password" autocomplete="current-password">
-  <input type="text" id="lockName" placeholder="First and last name" autocomplete="name">
-  <p class="lock-hint">First and last, so we can look you up on the guest list.</p>
-  <input type="email" id="lockEmail" placeholder="Your email" autocomplete="email">
+  <input type="text" id="lockName" placeholder="Full Name" autocomplete="name">
   <button id="lockSubmit">Enter</button>
   <p id="lockError">Me-OW that password isn't right, try again.</p>
 </div>
@@ -1382,7 +1376,6 @@
     const lockSubmit = document.getElementById('lockSubmit');
     const lockError = document.getElementById('lockError');
     const lockName = document.getElementById('lockName');
-    const lockEmail = document.getElementById('lockEmail');
     const lockDumpling = document.querySelector('.lock-dumpling-wrap');
     const eyeLeft = document.querySelector('.eye-left');
     const eyeRight = document.querySelector('.eye-right');
@@ -1392,18 +1385,18 @@
     function showError(text, field) {
       lockError.textContent = text;
       lockError.style.display = 'block';
-      [lockPassword, lockName, lockEmail].forEach(el => el.classList.remove('missing'));
+      [lockPassword, lockName].forEach(el => el.classList.remove('missing'));
       if (field) field.classList.add('missing');
     }
     function clearError() {
       lockError.style.display = 'none';
-      [lockPassword, lockName, lockEmail].forEach(el => el.classList.remove('missing'));
+      [lockPassword, lockName].forEach(el => el.classList.remove('missing'));
     }
     // The dumpling pulls a face when something's wrong.
     function sulk(field) {
       if (!lockDumpling) return;
       lockDumpling.classList.remove('shake');
-      [lockPassword, lockName, lockEmail].forEach(el => el.classList.remove('shake'));
+      [lockPassword, lockName].forEach(el => el.classList.remove('shake'));
       void lockDumpling.offsetWidth;
       lockDumpling.classList.add('shake');
       if (field) field.classList.add('shake');
@@ -1424,13 +1417,12 @@
       setTimeout(unlock, 900);
     }
 
-    // The name and email asked for here are the same ones the RSVP form needs,
-    // so hand them straight over rather than asking twice.
-    function carryOver(name, email) {
+    // The name asked for here is the one the RSVP form needs, so hand it
+    // straight over rather than asking twice. Email is asked for later,
+    // on the RSVP form itself.
+    function carryOver(name) {
       const lookupNameEl = document.getElementById('lookupName');
-      const emailEl = document.getElementById('email');
       if (lookupNameEl) lookupNameEl.value = name;
-      if (emailEl && email) emailEl.value = email;
     }
 
     async function tryUnlock() {
@@ -1443,7 +1435,6 @@
       }
 
       const name = lockName.value.trim();
-      const email = lockEmail.value.trim();
       if (!name) {
         showError('Add your name so we can find your invitation.', lockName);
         lockName.focus();
@@ -1458,7 +1449,7 @@
       clearError();
       lockSubmit.disabled = true;
       lockSubmit.textContent = 'Checking the list...';
-      carryOver(name, email);
+      carryOver(name);
       const status = presentInvitation(await fetchInvitation(name), false);
       lockSubmit.disabled = false;
       lockSubmit.textContent = 'Enter';
@@ -1473,7 +1464,6 @@
 
       sessionStorage.setItem(STORAGE_KEY, "true");
       sessionStorage.setItem(SESSION_NAME_KEY, name);
-      sessionStorage.setItem(SESSION_EMAIL_KEY, email);
       happyUnlock();
     }
 
@@ -1483,8 +1473,10 @@
       const savedName = sessionStorage.getItem(SESSION_NAME_KEY) || '';
       const savedEmail = sessionStorage.getItem(SESSION_EMAIL_KEY) || '';
       lockName.value = savedName;
-      lockEmail.value = savedEmail;
-      carryOver(savedName, savedEmail);
+      carryOver(savedName);
+      // An email they already sent with a previous RSVP comes back too.
+      const emailEl = document.getElementById('email');
+      if (emailEl && savedEmail) emailEl.value = savedEmail;
       unlock();
       if (savedName) {
         fetchInvitation(savedName).then(data => presentInvitation(data, false));
@@ -1495,7 +1487,7 @@
     }
 
     lockSubmit.addEventListener('click', tryUnlock);
-    [lockPassword, lockName, lockEmail].forEach(field => {
+    [lockPassword, lockName].forEach(field => {
       field.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); }
       });
