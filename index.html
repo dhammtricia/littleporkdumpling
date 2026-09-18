@@ -432,7 +432,7 @@
   .lock-card {
     width: min(384px, 100%);
     margin: auto;
-    padding: 26px 20px 22px;
+    padding: 18px 20px 16px;
     background: var(--white);
     border: 1px solid var(--sage-soft);
     border-radius: 14px;
@@ -443,7 +443,7 @@
   }
   /* The card's inner hairline sits 5px in from the border, so the run stops
      just short of it: they appear and vanish against that line, not the edge. */
-  #lockScreen .sprite-parade { width: auto; max-width: none; margin: 4px -14px 14px; }
+  #lockScreen .sprite-parade { width: auto; max-width: none; --scale: .85; height: 60px; margin: 2px -14px 10px; }
   /* Two fields and a dumpling need room; give some back on short screens. */
   @media (max-height: 720px) {
     #lockScreen { padding: 16px 16px; }
@@ -458,8 +458,8 @@
   @media (max-width: 560px) {
     #lockScreen { padding-bottom: 168px; background-size: 190px auto; }
   }
-  .lock-dumpling { width: 130px; height: auto; display: block; margin: 0 auto 8px; }
-  .lock-dumpling-wrap { position: relative; width: 130px; margin: 0 auto 8px; }
+  .lock-dumpling { width: 104px; height: auto; display: block; margin: 0 auto 6px; }
+  .lock-dumpling-wrap { position: relative; width: 104px; margin: 0 auto 6px; }
   .lock-dumpling-wrap .lock-dumpling { margin: 0; }
   .face-cover {
     position: absolute;
@@ -517,9 +517,9 @@
     font-size: min(22px, calc(7.1vw - 6px));
     white-space: nowrap;
     color: var(--sage-deep);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
-  #lockScreen p { max-width: 320px; margin: 0 auto 20px; color: var(--ink); }
+  #lockScreen p { max-width: 320px; margin: 0 auto 14px; color: var(--ink); }
   /* A relay of running sprites, left to right. Each character is defined once
      below and reused wherever a .sprite-parade appears. */
   .sprite-parade {
@@ -575,7 +575,7 @@
   #lockPassword, #lockName {
     padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
     background: #fff; border-radius: 3px; width: 240px; max-width: 100%;
-    font-family: 'Work Sans', sans-serif; display: block; margin: 0 auto 12px;
+    font-family: 'Work Sans', sans-serif; display: block; margin: 0 auto 10px;
   }
   #lockScreen input.missing { border-color: var(--terracotta); background: #FBF0E9; }
   #lockSubmit {
