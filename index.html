@@ -645,6 +645,40 @@
     font-family: 'Work Sans', sans-serif; display: block; margin: 0 auto 10px;
   }
   #lockScreen input.missing { border-color: var(--terracotta); background: #FBF0E9; }
+  /* A loading bar in the old-school style: black trough, red fill, and a
+     line of text riding over the top of it. */
+  .loadbar {
+    display: none;
+    position: relative;
+    width: 100%;
+    max-width: 240px;
+    height: 20px;
+    margin: 10px auto 0;
+    background: #17140F;
+    border: 1px solid #0B0906;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loadbar.on { display: block; }
+  .loadbar-fill {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 0;
+    background: linear-gradient(#C0271B, #96180F);
+    transition: width .45s ease;
+  }
+  .loadbar-text {
+    position: relative;
+    display: block;
+    line-height: 20px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 11px;
+    color: #FFF6EC;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 8px;
+  }
   #lockSubmit {
     padding: 12px 24px; background: var(--terracotta); color: #fff; border: none;
     border-radius: 3px; font-family: 'Fraunces', serif; font-size: 16px; cursor: pointer;
@@ -814,6 +848,10 @@
     <input type="password" id="lockPassword" placeholder="Password" autocomplete="current-password">
     <input type="text" id="lockName" placeholder="Full Name" autocomplete="name">
     <button id="lockSubmit">Enter</button>
+  <div class="loadbar" id="loadBar" role="status" aria-live="polite">
+    <span class="loadbar-fill" id="loadFill"></span>
+    <span class="loadbar-text" id="loadText">Checking the guest list...</span>
+  </div>
     <p id="lockError">Me-OW that password isn't right, try again.</p>
   </div>
 </div>
@@ -1642,6 +1680,78 @@
     const faceCover = document.querySelector('.face-cover');
     const mouthX = document.querySelector('.mouth-x');
 
+    // The loading bar. It creeps toward the end while we wait rather than
+    // pretending to know how long the guest list will take, and the messages
+    // shuffle so nobody sees the same one twice in a row.
+    const loadBar = document.getElementById('loadBar');
+    const loadFill = document.getElementById('loadFill');
+    const loadText = document.getElementById('loadText');
+    const WAIT_LINES = [
+      // plain
+      "Sorry it's taking so long...",
+      'Almost there...',
+      'Please wait a moment...',
+      "It's getting there...",
+      'Get some coffee while you wait...',
+      'Almost...',
+      // dumplings
+      'Steaming the dumplings...',
+      'Pleating the wrappers...',
+      'Waiting on the dough to prove...',
+      'One more basket, then yours...',
+      // matcha
+      'Whisking the matcha...',
+      'Sifting out the lumps...',
+      'Letting the tea steep...',
+      'Bringing the water to 80 degrees...',
+      // games
+      'Loading the guest list... 47%',
+      'Respawning...',
+      'Rolling for initiative...',
+      'Your invitation is in another castle...',
+      'Press Enter to continue... oh, you did',
+      'Achievement unlocked: patience'
+    ];
+    let barCreep = null, barWords = null, barAt = 0, lastLine = -1;
+
+    function nextLine() {
+      let i = Math.floor(Math.random() * WAIT_LINES.length);
+      if (i === lastLine) i = (i + 1) % WAIT_LINES.length;
+      lastLine = i;
+      loadText.textContent = WAIT_LINES[i];
+    }
+
+    function startBar() {
+      barAt = 8;
+      lastLine = -1;
+      loadText.textContent = 'Checking the guest list...';
+      loadFill.style.transition = 'none';
+      loadFill.style.width = '0%';
+      void loadFill.offsetWidth;                 // let that land before animating
+      loadFill.style.transition = '';
+      loadBar.classList.add('on');
+      loadFill.style.width = barAt + '%';
+      // Each step is a slice of what's left, so it slows as it nears the end
+      // and never actually arrives until the answer does.
+      barCreep = setInterval(function () {
+        barAt += (92 - barAt) * 0.18;
+        loadFill.style.width = barAt.toFixed(1) + '%';
+      }, 350);
+      barWords = setInterval(nextLine, 1500);
+    }
+
+    function stopBar(done) {
+      clearInterval(barCreep);
+      clearInterval(barWords);
+      if (done) {
+        loadFill.style.width = '100%';
+        loadText.textContent = 'Found you!';
+        setTimeout(function () { loadBar.classList.remove('on'); }, 450);
+      } else {
+        loadBar.classList.remove('on');
+      }
+    }
+
     function showError(text, field) {
       lockError.textContent = text;
       lockError.style.display = 'block';
@@ -1708,11 +1818,12 @@
 
       clearError();
       lockSubmit.disabled = true;
-      lockSubmit.textContent = 'Checking the list...';
+      startBar();
       carryOver(name);
       const status = presentInvitation(await fetchInvitation(name), false);
+      const found = status === 'ok' || status === 'multiple';
+      stopBar(found);
       lockSubmit.disabled = false;
-      lockSubmit.textContent = 'Enter';
 
       // Only somebody we can find on the guest list gets through.
       if (status !== 'ok' && status !== 'multiple') {
