@@ -44,8 +44,8 @@
   }
   .wrap { max-width: 620px; margin: 0 auto; padding: 70px 24px 120px; overflow-x: hidden; }
   .hero { text-align: center; padding: 24px 24px 18px; background: rgba(198, 216, 176, 0.5); border: 1px solid rgba(143, 174, 107, 0.5); border-radius: 12px; position: relative; margin: 0 28px; }
-  .hero-dumpling-wrap { position: relative; display: block; width: 130px; margin: 0 auto 12px; }
-  .steam-only { width: 190px; height: 40px; display: block; margin: 0 auto -20px; position: relative; left: 50%; transform: translateX(-50%); pointer-events: none; }
+  .hero-dumpling-wrap { position: relative; display: block; width: 168px; margin: 0 auto 2px; }
+  .steam-only { width: 240px; height: 50px; display: block; margin: 0 auto -24px; position: relative; left: 50%; transform: translateX(-50%); pointer-events: none; }
   .steam path {
     animation: rise 5s ease-in-out infinite;
     transform-origin: bottom center;
@@ -61,7 +61,7 @@
   @media (prefers-reduced-motion: reduce) {
     .steam path { animation: none; opacity: .4; }
   }
-  .hero-dumpling { width: 130px; height: auto; display: block; }
+  .hero-dumpling { width: 168px; height: auto; display: block; }
   .hero-bow { width: 256px; height: auto; position: absolute; top: -50px; left: -100px; transform: rotate(-25deg); z-index: 2; }
   .hero-bow-right { width: 256px; height: auto; position: absolute; top: -50px; right: -100px; transform: rotate(25deg) scaleX(-1); z-index: 2; }
   @media (max-width: 480px) {
@@ -72,10 +72,11 @@
     display: inline-block;
     font-family: 'Fraunces', serif;
     font-style: italic;
-    font-size: 17px;
+    /* Grows with the screen but stays on one line on a narrow phone. */
+    font-size: min(27px, calc(6.4vw - 4px));
     color: var(--terracotta);
     margin-bottom: 6px;
-    margin-top: 22px;
+    margin-top: 4px;
   }
   .hero h1 {
     font-size: clamp(32px, 6vw, 46px);
@@ -441,16 +442,16 @@
       inset 0 0 0 5px rgba(143, 174, 107, .35),
       0 12px 32px rgba(46, 42, 34, .07);
   }
-  /* Full bleed inside the card, the same as on the invite. Reaching past the
-     1px border as well as the 20px padding puts the ends on the green line. */
-  #lockScreen .sprite-parade { width: auto; max-width: none; margin: 4px -21px 14px; }
+  /* The card's inner hairline sits 5px in from the border, so the run stops
+     just short of it: they appear and vanish against that line, not the edge. */
+  #lockScreen .sprite-parade { width: auto; max-width: none; margin: 4px -14px 14px; }
   /* Two fields and a dumpling need room; give some back on short screens. */
   @media (max-height: 720px) {
     #lockScreen { padding: 16px 16px; }
     .lock-card { padding: 16px 16px 14px; }
-    #lockScreen .sprite-parade { --scale: .68; height: 50px; margin: 2px -17px 8px; }
+    #lockScreen .sprite-parade { --scale: .68; height: 50px; margin: 2px -10px 8px; }
     #lockScreen .lock-dumpling-wrap, #lockScreen .lock-dumpling { width: 92px; }
-    #lockScreen .lock-title { font-size: 21px; }
+    #lockScreen .lock-title { font-size: min(21px, calc(7.1vw - 6px)); }
     #lockScreen p { margin-bottom: 14px; }
   }
   .lock-dumpling { width: 130px; height: auto; display: block; margin: 0 auto 8px; }
@@ -505,7 +506,15 @@
     .shake { animation: none; }
     .happy-bounce { animation: none; }
   }
-  #lockScreen .lock-title { font-family: 'Fraunces', serif; font-size: 24px; color: var(--sage-deep); margin-bottom: 8px; }
+  /* Kept to a single line: the size shrinks with the viewport rather than
+     letting the phrase wrap. */
+  #lockScreen .lock-title {
+    font-family: 'Fraunces', serif;
+    font-size: min(24px, calc(7.1vw - 6px));
+    white-space: nowrap;
+    color: var(--sage-deep);
+    margin-bottom: 8px;
+  }
   #lockScreen p { max-width: 320px; margin: 0 auto 20px; color: var(--ink); }
   /* A relay of running sprites, left to right. Each character is defined once
      below and reused wherever a .sprite-parade appears. */
