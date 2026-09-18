@@ -430,9 +430,9 @@
   /* The invite's hero is a green panel with a single hairline; the gate is its
      paler cousin — a white card inside a double rule, like a sealed envelope. */
   .lock-card {
-    width: min(384px, 100%);
+    width: min(300px, 100%);
     margin: auto;
-    padding: 18px 20px 16px;
+    padding: 8px 20px 16px;
     position: relative;
     z-index: 1;
     background: rgba(255, 254, 250, .86);   /* a little of the matcha shows through */
@@ -481,7 +481,7 @@
   /* Two fields and a dumpling need room; give some back on short screens. */
   @media (max-height: 720px) {
     #lockScreen { padding: 16px 16px; }
-    .lock-card { padding: 16px 16px 14px; }
+    .lock-card { padding: 8px 16px 14px; }
     #lockScreen .sprite-parade { --scale: .68; height: 50px; margin: 2px -10px 8px; }
     #lockScreen .lock-dumpling-wrap, #lockScreen .lock-dumpling { width: 92px; }
     #lockScreen .lock-title { font-size: min(21px, calc(7.1vw - 6px)); }
@@ -492,8 +492,8 @@
   @media (max-width: 560px) {
     #lockScreen { padding-bottom: 168px; background-size: 190px auto; }
   }
-  .lock-dumpling { width: 104px; height: auto; display: block; margin: 0 auto 6px; }
-  .lock-dumpling-wrap { position: relative; width: 104px; margin: 0 auto 6px; }
+  .lock-dumpling { width: 104px; height: auto; display: block; margin: 0 auto 2px; }
+  .lock-dumpling-wrap { position: relative; width: 104px; margin: 0 auto 0; }
   .lock-dumpling-wrap .lock-dumpling { margin: 0; }
   .face-cover {
     position: absolute;
@@ -548,7 +548,7 @@
      letting the phrase wrap. */
   #lockScreen .lock-title {
     font-family: 'Fraunces', serif;
-    font-size: min(22px, calc(7.1vw - 6px));
+    font-size: min(18px, calc(7.1vw - 6px));
     white-space: nowrap;
     color: var(--sage-deep);
     margin-bottom: 4px;
@@ -608,7 +608,7 @@
   }
   #lockPassword, #lockName {
     padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
-    background: #fff; border-radius: 3px; width: 240px; max-width: 100%;
+    background: #fff; border-radius: 3px; width: 100%; max-width: 240px;
     font-family: 'Work Sans', sans-serif; display: block; margin: 0 auto 10px;
   }
   #lockScreen input.missing { border-color: var(--terracotta); background: #FBF0E9; }
@@ -690,17 +690,70 @@
 <body>
 <div id="lockScreen">
   <div class="leaf-fall" aria-hidden="true">
-      <i style="left: 42.3%; --size: 21px; --drift: 159px; --dur: 15.6s; --wait: -11.7s; --spin: -214deg; --fade: 0.67"></i>
-      <i style="left: 75.7%; --size: 14px; --drift: 154px; --dur: 12.3s; --wait: -10.8s; --spin: 475deg; --fade: 0.66"></i>
-      <i style="left: 36.8%; --size: 20px; --drift: -80px; --dur: 11.1s; --wait: -10.6s; --spin: 150deg; --fade: 0.52"></i>
-      <i style="left: 21.7%; --size: 13px; --drift: 158px; --dur: 15.0s; --wait: -16.8s; --spin: 385deg; --fade: 0.67"></i>
-      <i style="left: 47.0%; --size: 23px; --drift: 61px; --dur: 16.9s; --wait: -8.1s; --spin: 402deg; --fade: 0.7"></i>
-      <i style="left: 28.9%; --size: 16px; --drift: 171px; --dur: 11.3s; --wait: -11.3s; --spin: -175deg; --fade: 0.49"></i>
-      <i style="left: 26.5%; --size: 14px; --drift: -44px; --dur: 11.0s; --wait: -4.2s; --spin: -146deg; --fade: 0.58"></i>
-      <i style="left: 67.5%; --size: 19px; --drift: -58px; --dur: 16.7s; --wait: -15.6s; --spin: -258deg; --fade: 0.48"></i>
-      <i style="left: 30.6%; --size: 19px; --drift: 70px; --dur: 13.2s; --wait: -2.0s; --spin: -150deg; --fade: 0.73"></i>
-      <i style="left: 15.4%; --size: 21px; --drift: 88px; --dur: 15.6s; --wait: -19.7s; --spin: 513deg; --fade: 0.6"></i>
-      <i style="left: 35.6%; --size: 19px; --drift: 147px; --dur: 11.0s; --wait: -17.3s; --spin: -531deg; --fade: 0.8"></i>
+      <i style="left: -33.1%; --size: 23px; --drift: 483px; --dur: 13.1s; --wait: -5.8s; --spin: -206deg; --fade: 0.62"></i>
+      <i style="left: 0.5%; --size: 24px; --drift: 450px; --dur: 15.9s; --wait: -5.8s; --spin: 215deg; --fade: 0.4"></i>
+      <i style="left: 61.7%; --size: 15px; --drift: 420px; --dur: 16.9s; --wait: -3.9s; --spin: -165deg; --fade: 0.42"></i>
+      <i style="left: 81.2%; --size: 21px; --drift: 332px; --dur: 14.2s; --wait: -0.6s; --spin: 142deg; --fade: 0.52"></i>
+      <i style="left: 10.9%; --size: 25px; --drift: 338px; --dur: 14.8s; --wait: -13.1s; --spin: 201deg; --fade: 0.54"></i>
+      <i style="left: 49.3%; --size: 19px; --drift: 340px; --dur: 15.9s; --wait: -16.7s; --spin: 211deg; --fade: 0.5"></i>
+      <i style="left: 62.0%; --size: 24px; --drift: 367px; --dur: 15.8s; --wait: -14.1s; --spin: 87deg; --fade: 0.65"></i>
+      <i style="left: -38.2%; --size: 16px; --drift: 517px; --dur: 14.6s; --wait: -11.5s; --spin: -99deg; --fade: 0.57"></i>
+      <i style="left: 32.7%; --size: 26px; --drift: 333px; --dur: 16.8s; --wait: -8.3s; --spin: 79deg; --fade: 0.45"></i>
+      <i style="left: 21.0%; --size: 13px; --drift: 464px; --dur: 11.6s; --wait: -2.6s; --spin: 76deg; --fade: 0.79"></i>
+      <i style="left: -38.9%; --size: 25px; --drift: 411px; --dur: 11.8s; --wait: -14.5s; --spin: 184deg; --fade: 0.43"></i>
+      <i style="left: -30.9%; --size: 13px; --drift: 443px; --dur: 17.7s; --wait: -3.7s; --spin: 158deg; --fade: 0.62"></i>
+      <i style="left: -3.1%; --size: 14px; --drift: 361px; --dur: 17.2s; --wait: -10.1s; --spin: -180deg; --fade: 0.61"></i>
+      <i style="left: -28.0%; --size: 11px; --drift: 368px; --dur: 10.1s; --wait: -15.0s; --spin: -136deg; --fade: 0.43"></i>
+      <i style="left: 82.7%; --size: 20px; --drift: 344px; --dur: 11.1s; --wait: -3.3s; --spin: -181deg; --fade: 0.43"></i>
+      <i style="left: 84.8%; --size: 23px; --drift: 393px; --dur: 10.3s; --wait: -9.1s; --spin: -165deg; --fade: 0.67"></i>
+      <i style="left: 20.8%; --size: 12px; --drift: 433px; --dur: 11.3s; --wait: -0.3s; --spin: -184deg; --fade: 0.42"></i>
+      <i style="left: -52.3%; --size: 12px; --drift: 431px; --dur: 15.1s; --wait: -16.0s; --spin: -223deg; --fade: 0.59"></i>
+      <i style="left: 6.2%; --size: 14px; --drift: 467px; --dur: 17.4s; --wait: -7.5s; --spin: -71deg; --fade: 0.74"></i>
+      <i style="left: 36.0%; --size: 17px; --drift: 326px; --dur: 13.6s; --wait: -11.5s; --spin: 103deg; --fade: 0.6"></i>
+      <i style="left: -56.5%; --size: 13px; --drift: 514px; --dur: 15.1s; --wait: -7.8s; --spin: 216deg; --fade: 0.41"></i>
+      <i style="left: 57.3%; --size: 23px; --drift: 503px; --dur: 12.5s; --wait: -8.1s; --spin: -144deg; --fade: 0.71"></i>
+      <i style="left: -32.2%; --size: 25px; --drift: 485px; --dur: 10.5s; --wait: -4.1s; --spin: 168deg; --fade: 0.74"></i>
+      <i style="left: 43.2%; --size: 22px; --drift: 508px; --dur: 11.7s; --wait: -16.8s; --spin: -137deg; --fade: 0.8"></i>
+      <i style="left: 68.5%; --size: 17px; --drift: 374px; --dur: 13.5s; --wait: -7.1s; --spin: -230deg; --fade: 0.65"></i>
+      <i style="left: 42.1%; --size: 20px; --drift: 327px; --dur: 12.3s; --wait: -0.9s; --spin: 128deg; --fade: 0.53"></i>
+      <i style="left: 95.1%; --size: 14px; --drift: 456px; --dur: 10.8s; --wait: -8.6s; --spin: -62deg; --fade: 0.5"></i>
+      <i style="left: 54.6%; --size: 15px; --drift: 497px; --dur: 10.8s; --wait: -4.5s; --spin: -130deg; --fade: 0.56"></i>
+      <i style="left: -47.1%; --size: 18px; --drift: 502px; --dur: 15.3s; --wait: -4.1s; --spin: 180deg; --fade: 0.77"></i>
+      <i style="left: 1.3%; --size: 19px; --drift: 384px; --dur: 15.8s; --wait: -4.9s; --spin: 62deg; --fade: 0.51"></i>
+      <i style="left: -19.9%; --size: 19px; --drift: 503px; --dur: 17.3s; --wait: -4.5s; --spin: -227deg; --fade: 0.66"></i>
+      <i style="left: -14.0%; --size: 21px; --drift: 461px; --dur: 13.8s; --wait: -14.9s; --spin: -211deg; --fade: 0.45"></i>
+      <i style="left: -15.0%; --size: 22px; --drift: 376px; --dur: 16.0s; --wait: -2.1s; --spin: 130deg; --fade: 0.67"></i>
+      <i style="left: -4.6%; --size: 20px; --drift: 498px; --dur: 17.7s; --wait: -0.7s; --spin: 76deg; --fade: 0.65"></i>
+      <i style="left: -25.9%; --size: 20px; --drift: 492px; --dur: 15.9s; --wait: -17.7s; --spin: -176deg; --fade: 0.45"></i>
+      <i style="left: 9.8%; --size: 13px; --drift: 427px; --dur: 16.5s; --wait: -15.8s; --spin: -175deg; --fade: 0.7"></i>
+      <i style="left: 42.4%; --size: 21px; --drift: 407px; --dur: 11.1s; --wait: -12.5s; --spin: 154deg; --fade: 0.63"></i>
+      <i style="left: -11.2%; --size: 18px; --drift: 325px; --dur: 17.5s; --wait: -16.4s; --spin: -85deg; --fade: 0.52"></i>
+      <i style="left: 92.9%; --size: 24px; --drift: 480px; --dur: 11.0s; --wait: -3.2s; --spin: -120deg; --fade: 0.61"></i>
+      <i style="left: 76.9%; --size: 14px; --drift: 469px; --dur: 11.7s; --wait: -9.4s; --spin: -172deg; --fade: 0.48"></i>
+      <i style="left: -45.9%; --size: 21px; --drift: 422px; --dur: 12.0s; --wait: -4.1s; --spin: 105deg; --fade: 0.58"></i>
+      <i style="left: 91.1%; --size: 19px; --drift: 453px; --dur: 10.7s; --wait: -12.7s; --spin: -77deg; --fade: 0.77"></i>
+      <i style="left: -24.9%; --size: 18px; --drift: 424px; --dur: 14.0s; --wait: -16.8s; --spin: -201deg; --fade: 0.72"></i>
+      <i style="left: 50.3%; --size: 14px; --drift: 465px; --dur: 12.9s; --wait: -3.6s; --spin: 179deg; --fade: 0.79"></i>
+      <i style="left: 62.1%; --size: 18px; --drift: 453px; --dur: 12.8s; --wait: -10.8s; --spin: -101deg; --fade: 0.75"></i>
+      <i style="left: 16.1%; --size: 11px; --drift: 405px; --dur: 13.1s; --wait: -14.5s; --spin: 64deg; --fade: 0.72"></i>
+      <i style="left: -18.7%; --size: 23px; --drift: 369px; --dur: 16.3s; --wait: -1.0s; --spin: 169deg; --fade: 0.49"></i>
+      <i style="left: -12.4%; --size: 12px; --drift: 517px; --dur: 13.8s; --wait: -17.7s; --spin: 124deg; --fade: 0.79"></i>
+      <i style="left: 30.3%; --size: 22px; --drift: 440px; --dur: 17.7s; --wait: -12.8s; --spin: 210deg; --fade: 0.49"></i>
+      <i style="left: 75.1%; --size: 16px; --drift: 376px; --dur: 16.0s; --wait: -8.8s; --spin: 217deg; --fade: 0.56"></i>
+      <i style="left: 65.6%; --size: 11px; --drift: 378px; --dur: 14.5s; --wait: -3.9s; --spin: -153deg; --fade: 0.5"></i>
+      <i style="left: 35.0%; --size: 20px; --drift: 397px; --dur: 17.3s; --wait: -11.7s; --spin: 134deg; --fade: 0.67"></i>
+      <i style="left: -42.8%; --size: 11px; --drift: 351px; --dur: 17.5s; --wait: -13.3s; --spin: 168deg; --fade: 0.51"></i>
+      <i style="left: 26.0%; --size: 13px; --drift: 476px; --dur: 16.1s; --wait: -0.7s; --spin: -133deg; --fade: 0.43"></i>
+      <i style="left: 9.5%; --size: 19px; --drift: 431px; --dur: 10.8s; --wait: -9.3s; --spin: -77deg; --fade: 0.56"></i>
+      <i style="left: -7.5%; --size: 20px; --drift: 443px; --dur: 10.7s; --wait: -1.6s; --spin: 153deg; --fade: 0.55"></i>
+      <i style="left: -52.6%; --size: 17px; --drift: 354px; --dur: 10.9s; --wait: -0.9s; --spin: -184deg; --fade: 0.73"></i>
+      <i style="left: 47.0%; --size: 21px; --drift: 402px; --dur: 16.8s; --wait: -6.9s; --spin: -124deg; --fade: 0.79"></i>
+      <i style="left: 90.4%; --size: 18px; --drift: 481px; --dur: 10.8s; --wait: -10.9s; --spin: -136deg; --fade: 0.74"></i>
+      <i style="left: 15.6%; --size: 11px; --drift: 416px; --dur: 16.7s; --wait: -0.6s; --spin: -88deg; --fade: 0.64"></i>
+      <i style="left: 68.9%; --size: 23px; --drift: 340px; --dur: 13.9s; --wait: -7.4s; --spin: 89deg; --fade: 0.71"></i>
+      <i style="left: 28.9%; --size: 20px; --drift: 425px; --dur: 15.6s; --wait: -5.2s; --spin: -88deg; --fade: 0.63"></i>
+      <i style="left: 88.5%; --size: 24px; --drift: 380px; --dur: 11.0s; --wait: -10.2s; --spin: -74deg; --fade: 0.51"></i>
+      <i style="left: 35.9%; --size: 23px; --drift: 415px; --dur: 10.7s; --wait: -4.6s; --spin: 173deg; --fade: 0.76"></i>
   </div>
   <div class="lock-card">
     <div class="lock-dumpling-wrap">
