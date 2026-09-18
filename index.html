@@ -89,31 +89,27 @@
   }
   .hero p.sub { font-size: 18px; max-width: 38ch; margin: 0 auto; color: var(--ink); }
   .hero .names { font-family: 'Fraunces', serif; font-style: italic; color: var(--sage-deep); }
-  /* Baby photos that pop up in the margins beside the invite. They live in a
-     fixed layer so they never push the page around, and they're hidden when
-     the window is too narrow to have margins to sit in. */
+  /* The two baby photos drift around the page and bounce off the edges, like
+     an old screensaver. A fixed, untappable layer, so nothing they cross can
+     be blocked or pushed around. */
   .peekers { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 3; }
   .peeker {
     position: absolute;
+    top: 0; left: 0;
     width: 96px; height: 96px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--white);
     box-shadow: 0 8px 22px rgba(46, 42, 34, .18);
-    opacity: 0;
-    transform: scale(.55) translateY(10px);
-    transition: opacity .4s ease, transform .5s cubic-bezier(.34, 1.56, .64, 1);
+    opacity: .92;
+    will-change: transform;
   }
-  .peeker.show { opacity: 1; transform: scale(1) translateY(0); }
-  /* On a phone there are no margins to sit in, so they float over the page
-     instead — smaller and a touch see-through, and never tappable. */
   @media (max-width: 900px) {
-    .peeker { width: 74px; height: 74px; border-width: 2px; }
-    .peeker.show { opacity: .92; }
+    .peeker { width: 70px; height: 70px; border-width: 2px; opacity: .88; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .peeker { transition: opacity .2s linear; transform: none; }
-    .peeker.show { transform: none; }
+    /* No drifting: they simply rest in the corners. */
+    .peekers { display: none; }
   }
   .section-label {
     font-family: 'Fraunces', serif;
@@ -1771,54 +1767,65 @@
   })();
 </script>
 <script>
-  // Both babies pop up together — one on each side, at random heights, with
-  // the photos shuffled so it isn't always the same face on the same side.
+  // Screensaver drift: each photo carries a velocity and reverses whenever it
+  // meets an edge. Positions are held in JS and written as transforms, which
+  // the browser can move without re-laying out the page.
   (function () {
     const peekers = Array.prototype.slice.call(document.querySelectorAll('.peeker'));
-    if (peekers.length < 2) return;
-    const photos = peekers.map(function (el) { return el.src; });
+    if (!peekers.length) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    function photoSize() { return window.innerWidth <= 900 ? 74 : 96; }
+    const SPEED = window.innerWidth <= 900 ? 34 : 46;   // pixels per second
+    const bodies = peekers.map(function (el, i) {
+      const angle = (Math.random() * 0.6 + 0.3) * Math.PI * (i ? -1 : 1);
+      return {
+        el: el,
+        size: el.offsetWidth || 96,
+        x: 0, y: 0,
+        vx: Math.cos(angle) * SPEED * (Math.random() < .5 ? -1 : 1),
+        vy: Math.sin(angle) * SPEED
+      };
+    });
 
-    // Clear space beside the 620px column, per side.
-    function gutter() {
-      return Math.max(0, (window.innerWidth - 620 - 48) / 2);
+    // Spread the starting points out so they don't set off together.
+    bodies.forEach(function (b, i) {
+      b.size = b.el.offsetWidth || b.size;
+      b.x = (window.innerWidth - b.size) * (i ? 0.75 : 0.2);
+      b.y = (window.innerHeight - b.size) * (i ? 0.65 : 0.25);
+    });
+
+    let last = null;
+    function frame(now) {
+      if (last === null) last = now;
+      const dt = Math.min((now - last) / 1000, 0.05);   // ignore long gaps
+      last = now;
+      const maxX = window.innerWidth;
+      const maxY = window.innerHeight;
+
+      bodies.forEach(function (b) {
+        b.size = b.el.offsetWidth || b.size;
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+
+        if (b.x <= 0)               { b.x = 0;               b.vx = Math.abs(b.vx); }
+        if (b.x + b.size >= maxX)   { b.x = maxX - b.size;   b.vx = -Math.abs(b.vx); }
+        if (b.y <= 0)               { b.y = 0;               b.vy = Math.abs(b.vy); }
+        if (b.y + b.size >= maxY)   { b.y = maxY - b.size;   b.vy = -Math.abs(b.vy); }
+
+        b.el.style.transform = 'translate3d(' + Math.round(b.x) + 'px,' + Math.round(b.y) + 'px,0)';
+      });
+
+      requestAnimationFrame(frame);
     }
+    requestAnimationFrame(frame);
 
-    // Wide windows get them tucked in the margin; narrow ones get them over
-    // the page, kept to their own half so the pair can't collide.
-    function band() {
-      const size = photoSize();
-      const room = gutter();
-      if (room >= size + 24) return { min: 12, max: room - size - 12 };
-      const half = window.innerWidth / 2;
-      return { min: 6, max: Math.max(8, half - size - 8) };
-    }
-
-    function place(el, onLeft, src, span) {
-      const inset = span.min + Math.random() * Math.max(0, span.max - span.min);
-      el.src = src;
-      el.style.left = onLeft ? inset + 'px' : 'auto';
-      el.style.right = onLeft ? 'auto' : inset + 'px';
-      el.style.top = (10 + Math.random() * 68) + 'vh';
-    }
-
-    function popBoth() {
-      if (document.hidden) return setTimeout(popBoth, 3000);
-      const span = band();
-
-      const order = Math.random() < .5 ? [0, 1] : [1, 0];
-      place(peekers[0], true, photos[order[0]], span);
-      place(peekers[1], false, photos[order[1]], span);
-      peekers.forEach(function (el) { el.classList.add('show'); });
-
-      setTimeout(function () {
-        peekers.forEach(function (el) { el.classList.remove('show'); });
-        setTimeout(popBoth, 2600 + Math.random() * 5000);
-      }, 2800 + Math.random() * 1600);
-    }
-
-    setTimeout(popBoth, 1500);
+    // A rotated phone or resized window shouldn't strand them off screen.
+    window.addEventListener('resize', function () {
+      bodies.forEach(function (b) {
+        b.x = Math.min(b.x, Math.max(0, window.innerWidth - b.size));
+        b.y = Math.min(b.y, Math.max(0, window.innerHeight - b.size));
+      });
+    });
   })();
 </script>
 </body>
