@@ -72,8 +72,10 @@
     display: inline-block;
     font-family: 'Fraunces', serif;
     font-style: italic;
-    /* Grows with the screen but stays on one line on a narrow phone. */
-    font-size: min(27px, calc(6.4vw - 4px));
+    /* One line always. The hero eats ~152px in page padding, card margin and
+       card padding, so the size is pegged to what's actually left. */
+    white-space: nowrap;
+    font-size: min(27px, calc(7vw - 11px));
     color: var(--terracotta);
     margin-bottom: 6px;
     margin-top: 4px;
