@@ -94,15 +94,18 @@
     font-size: 15px;
     font-style: italic;
     color: var(--terracotta);
-    margin-bottom: 10px;
+    margin-bottom: 2px;
   }
   .steamer-card {
     position: relative;
     background: var(--white);
-    padding: 40px 28px 32px;
-    margin-top: 26px;
+    padding: 15px 28px 24px;
+    margin-top: 12px;
     border: 1px solid var(--cream-deep);
   }
+  /* The scallops are cut from circles centred on the card's top edge, so they
+     only bite ~12px in. The heading can start just below that. */
+  .steamer-card--tight { padding-top: 6px; }
   .steamer-card::before {
     content: '';
     position: absolute;
@@ -120,7 +123,12 @@
     background-size: 26px 14px;
     background-repeat: repeat-x;
   }
-  .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 18px; }
+  /* A <dl> carries a 1em margin by default, which was adding an invisible
+     16px above the first row and below the last. */
+  .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 18px; margin: 0; }
+  /* Nothing at the top of a card brings its own margin with it. */
+  .steamer-card > :first-child,
+  .steamer-card .step > :first-child { margin-top: 0; }
   .detail-item dt {
     font-family: 'Fraunces', serif;
     font-size: 13px;
@@ -629,7 +637,10 @@
     font-size: 26px;
     font-weight: 500;
     color: var(--sage-deep);
-    margin: 0 0 4px;
+    /* Fraunces has tall metrics, so the default line box left a band of empty
+       space above the capitals. */
+    line-height: 1.08;
+    margin: 0 0 6px;
   }
   .member {
     padding: 14px 0;
@@ -853,7 +864,7 @@
   </div>
   <section>
     <div class="section-label">Your reply</div>
-    <div class="steamer-card">
+    <div class="steamer-card steamer-card--tight">
 
       <!-- Step 1: find the guest on the list -->
       <div id="lookupStep" class="step show">
