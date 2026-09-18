@@ -425,12 +425,12 @@
     background-size: min(280px, 52vw) auto;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
     padding: 32px 20px; text-align: center; font-family: 'Work Sans', sans-serif;
-    overflow-y: auto;
+    overflow-x: hidden; overflow-y: auto;
   }
   /* The invite's hero is a green panel with a single hairline; the gate is its
      paler cousin — a white card inside a double rule, like a sealed envelope. */
   .lock-card {
-    width: min(360px, 100%);
+    width: min(384px, 100%);
     margin: auto;
     padding: 26px 20px 22px;
     background: var(--white);
@@ -452,6 +452,11 @@
     #lockScreen .lock-dumpling-wrap, #lockScreen .lock-dumpling { width: 92px; }
     #lockScreen .lock-title { font-size: min(21px, calc(7.1vw - 6px)); }
     #lockScreen p { margin-bottom: 14px; }
+  }
+  /* On a phone the card all but fills the screen, so lift it and keep a strip
+     of green at the bottom for the bowl to sit in. */
+  @media (max-width: 560px) {
+    #lockScreen { padding-bottom: 168px; background-size: 190px auto; }
   }
   .lock-dumpling { width: 130px; height: auto; display: block; margin: 0 auto 8px; }
   .lock-dumpling-wrap { position: relative; width: 130px; margin: 0 auto 8px; }
@@ -509,7 +514,7 @@
      letting the phrase wrap. */
   #lockScreen .lock-title {
     font-family: 'Fraunces', serif;
-    font-size: min(24px, calc(7.1vw - 6px));
+    font-size: min(22px, calc(7.1vw - 6px));
     white-space: nowrap;
     color: var(--sage-deep);
     margin-bottom: 8px;
