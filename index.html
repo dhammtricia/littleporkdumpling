@@ -433,11 +433,14 @@
       inset 0 0 0 5px rgba(143, 174, 107, .35),
       0 12px 32px rgba(46, 42, 34, .07);
   }
+  /* Full bleed inside the card, the same as on the invite. Reaching past the
+     1px border as well as the 20px padding puts the ends on the green line. */
+  #lockScreen .sprite-parade { width: auto; max-width: none; margin: 4px -21px 14px; }
   /* Two fields and a dumpling need room; give some back on short screens. */
   @media (max-height: 720px) {
     #lockScreen { padding: 16px 16px; }
     .lock-card { padding: 16px 16px 14px; }
-    #lockScreen .sprite-parade { --scale: .68; height: 50px; margin-bottom: 6px; }
+    #lockScreen .sprite-parade { --scale: .68; height: 50px; margin: 2px -17px 8px; }
     #lockScreen .lock-dumpling-wrap, #lockScreen .lock-dumpling { width: 92px; }
     #lockScreen .lock-title { font-size: 21px; }
     #lockScreen p { margin-bottom: 14px; }
@@ -495,7 +498,7 @@
     .happy-bounce { animation: none; }
   }
   #lockScreen .lock-title { font-family: 'Fraunces', serif; font-size: 24px; color: var(--sage-deep); margin-bottom: 8px; }
-  #lockScreen p { max-width: 320px; margin-bottom: 20px; color: var(--ink); }
+  #lockScreen p { max-width: 320px; margin: 0 auto 20px; color: var(--ink); }
   /* A relay of running sprites, left to right. Each character is defined once
      below and reused wherever a .sprite-parade appears. */
   .sprite-parade {
@@ -542,7 +545,7 @@
   /* A longer run on the invite itself, where there is more room. */
   /* Full bleed inside the card: the negative margins cancel the hero's 24px
      padding, so the run starts and ends at the green border. */
-  .hero .sprite-parade { width: auto; margin: 6px -24px 14px; }
+  .hero .sprite-parade { width: auto; max-width: none; margin: 6px -25px 14px; }
   @media (prefers-reduced-motion: reduce) {
     /* Nobody runs; one stands in the middle and the rest sit this one out. */
     .sprite-parade .runner { animation: none; left: 50%; transform: translateX(-50%); }
@@ -550,8 +553,8 @@
   }
   #lockPassword, #lockName {
     padding: 12px 14px; font-size: 16px; border: 1px solid var(--cream-deep);
-    background: #fff; border-radius: 3px; width: 240px; max-width: 80vw; margin-bottom: 12px;
-    font-family: 'Work Sans', sans-serif; display: block;
+    background: #fff; border-radius: 3px; width: 240px; max-width: 100%;
+    font-family: 'Work Sans', sans-serif; display: block; margin: 0 auto 12px;
   }
   #lockScreen input.missing { border-color: var(--terracotta); background: #FBF0E9; }
   #lockSubmit {
