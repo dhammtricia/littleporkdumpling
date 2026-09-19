@@ -2352,19 +2352,15 @@
     const big = layer.querySelector('img');
 
     let holding = false;
-    let start = null;
-    const DRAG_CANCEL = 20;   // px of movement that counts as a drag, not a hold
 
-    function open(photo, e) {
+    function open(photo) {
       big.src = photo.dataset.zoom || photo.currentSrc || photo.src;
       layer.classList.add('show');
       holding = true;
-      start = { x: e.clientX, y: e.clientY };
     }
     function close() {
       if (!holding) return;
       holding = false;
-      start = null;
       layer.classList.remove('show');
     }
 
@@ -2372,7 +2368,12 @@
       photo.addEventListener('pointerdown', function (e) {
         // Stops the browser's own drag-ghost and long-press menu taking over.
         e.preventDefault();
-        open(photo, e);
+        open(photo);
+        // Keep receiving events even once the finger slides off the photo, or
+        // once the photo drifts out from under it.
+        if (photo.setPointerCapture) {
+          try { photo.setPointerCapture(e.pointerId); } catch (err) {}
+        }
       });
       photo.addEventListener('dragstart', function (e) { e.preventDefault(); });
       photo.addEventListener('contextmenu', function (e) { e.preventDefault(); });
@@ -2385,11 +2386,9 @@
     window.addEventListener('blur', close);
     document.addEventListener('visibilitychange', close);
 
-    // Treat a real drag as a change of mind rather than a hold.
-    window.addEventListener('pointermove', function (e) {
-      if (!holding || !start) return;
-      if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > DRAG_CANCEL) close();
-    }, { passive: true });
+    // Deliberately no cancel-on-move: sliding a finger aside to see past it is
+    // the whole point. The photo sets touch-action: none, so a slide here can
+    // never have been a scroll that needed rescuing.
   })();
 </script>
 </body>
