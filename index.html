@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>[PREVIEW — no password] A Little Dumpling is on the Way — Baby Shower RSVP</title>
+<title>A Little Dumpling is on the Way — Baby Shower RSVP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=Style+Script&display=swap" rel="stylesheet">
@@ -2201,16 +2201,6 @@
       sessionStorage.setItem(SESSION_NAME_KEY, name);
       happyUnlock();
     }
-
-    // ================= PREVIEW BUILD =================
-    // The password gate is switched OFF in this copy so the invite can be
-    // reviewed without typing anything. Nothing else differs from index.html.
-    // Do NOT send this file to guests — send index.html, which still asks for
-    // the password. Returning early here skips the gate's own form listeners,
-    // which is fine because the gate is never shown.
-    unlock();
-    return;
-    // ===============================================
 
     // Add ?lock=1 or #lock to the URL to see the gate again after you've
     // already been through it once in this browser session.
