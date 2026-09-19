@@ -33,7 +33,6 @@
     --ink: #23291A;
     --bamboo: #C7A35E;      /* the whisk — the one warm note */
     --white: #FCFDF6;
-    --hojicha: #8E6E3E;     /* roasted tea — "can't make it" */
     --alert: #A34632;       /* errors only, never decoration */
     --blush: #FEB183;       /* the dumpling's cheek, exactly */
     --blush-deep: #9E4926;  /* the same warmth, steeped dark enough to read on */
@@ -371,8 +370,11 @@
      data-choice, not an id — an earlier #attendNo selector here matched
      nothing, which is why both buttons were turning green. */
   .attend-btn[data-choice="no"][aria-pressed="true"] {
-    background: var(--hojicha);
-    border-color: #7F6236;
+    /* The blush, steeped dark enough to carry white text — white on the cheek
+       colour itself only reaches 1.7:1. Same token as the warm accent text, so
+       the page holds one warm colour rather than two near-identical ones. */
+    background: var(--blush-deep);
+    border-color: var(--blush-deep);
     color: var(--white);
   }
   .attend-btn .check-mark {
